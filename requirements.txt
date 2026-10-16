@@ -1,0 +1,14 @@
+# Lightweight CPU-only stack (MacBook Air M2 / Windows i5 both fine).
+# PyTDC pinned to 0.4.x: the 1.x line hard-depends on torch/transformers/scanpy
+# (~3GB) which this project does not use. 0.4.x is also the version the
+# published ADMET leaderboard entries were produced with, so splits match.
+PyTDC==0.4.1
+rdkit==2024.3.5
+lightgbm==4.5.0
+numpy<2
+pandas<2.3
+scikit-learn<1.6
+scipy<1.15
+matplotlib<3.10
+pyyaml
+tqdm
