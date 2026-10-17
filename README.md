@@ -41,6 +41,10 @@ Xem `notes/` theo thứ tự, và bản thảo paper ở [paper/draft.md](paper/
   việc **học** phép hiệu chỉnh, không phải từ dữ liệu thêm.
 - [09 — độ nhạy](notes/09-sensitivity.md): kết quả trên không phụ thuộc hai tham số chưa
   tinh chỉnh; cả 8 cấu hình đều dương.
+- [10 — ngoài miền](notes/10-ood-generalisation.md): split scaffold của TDC **không phải**
+  phép kiểm ngoại suy mạnh. Trên split cụm với kiểm soát rò rỉ chặt, luận điểm "học
+  coupling thắng cố định coupling" **vững và mạnh lên** (p=0,0001); luận điểm "ràng buộc
+  thắng đơn nhiệm" thì **yếu đi nhiều**.
 
 ## Cài đặt
 
@@ -67,4 +71,10 @@ Thay `.venv/Scripts/python` bằng `.venv/bin/python` trên macOS.
 .venv/Scripts/python -m src.experiments.censored_vs_plain   # Tobit vs OLS, ghép cặp 25 seed
 .venv/Scripts/python -m src.experiments.label_efficiency    # kết quả chính + ablation
 .venv/Scripts/python -m src.experiments.sensitivity         # quét pseudo_weight / n_rounds
+.venv/Scripts/python -m src.experiments.ood_generalisation --strict --tag ood_strict
+
+# Tập external theo thời gian (FDA)
+.venv/Scripts/python -m src.data.fda_nme            # buoc 1: NME tu 2017
+.venv/Scripts/python -m src.data.fda_labels         # buoc 2-3: nhan + cau truc
+.venv/Scripts/python -m src.data.external_overlap   # loc + kiem trung lap voi TDC
 ```

@@ -78,15 +78,62 @@ Kể cả ngoài miền: +0,016 (p = 0,18) và +0,020 (p = 0,31). Nên **quy đ�
 không chuyển giao**. Việc học phép hiệu chỉnh là thứ tạo ra lợi ích, trong miền lẫn ngoài
 miền — nhất quán với `notes/08`.
 
-## 6. Kiểm soát rò rỉ chặt — đang chạy
+## 6. Kiểm soát rò rỉ chặt — và nó làm yếu kết quả ở mục 2–3
 
-Bản trên chỉ loại nhãn `cl_mic` của **chính** phân tử test. Chưa đủ cho một tuyên bố
+Bản ở mục 2 chỉ loại nhãn `cl_mic` của **chính** phân tử test. Chưa đủ cho một tuyên bố
 ngoại suy: nhãn microsome của một chất **tương đồng gần** với phân tử test vẫn nói cho mô
 hình biết về chuỗi hoá học đang bị giữ lại.
 
-Bản chặt (`--strict`) phân cụm **hợp** của cả hai tập rồi loại mọi phân tử microsome
-**cùng cụm** với tập test. Seed 1: Deming vẫn thắng đơn nhiệm (+0,032) và thắng identity
-(+0,013). Đang chạy đủ 25 seed. **Con số trong bài phải lấy từ bản chặt.**
+Bản chặt phân cụm **hợp** của cả hai tập (1 440 phân tử) rồi loại mọi phân tử microsome
+**cùng cụm** với tập test. Còn lại **855 / 1 102** nhãn microsome dùng được.
+
+### 100% nhãn
+
+| So sánh | lỏng | **chặt** | KTC 95% (chặt) | thắng | p |
+|---|---|---|---|---|---|
+| có ràng buộc − đơn nhiệm | +0,0382 | **+0,0154** | [−0,0005, +0,031] | 19/25 | 0,019 |
+| identity − đơn nhiệm | +0,0156 | −0,0178 | [−0,038, +0,002] | 8/25 | 0,12 |
+| **Deming − identity** | +0,0226 | **+0,0333** | [+0,020, +0,047] | **21/25** | **0,0001** |
+
+### 50% nhãn
+
+| So sánh | lỏng | **chặt** | KTC 95% (chặt) | thắng | p |
+|---|---|---|---|---|---|
+| có ràng buộc − đơn nhiệm | +0,0537 | **+0,0190** | [−0,014, +0,052] | 15/25 | **0,37** |
+| identity − đơn nhiệm | +0,0201 | −0,0185 | [−0,060, +0,016] | 11/25 | 0,60 |
+| **Deming − identity** | +0,0336 | **+0,0375** | [+0,016, +0,061] | **22/25** | **0,0012** |
+
+## 6b. Đọc lại cho đúng — hai luận điểm có số phận khác nhau
+
+### Luận điểm "có ràng buộc thắng đơn nhiệm ngoài miền": **yếu đi nhiều**
+
+Ở 50% nhãn nó **mất hẳn ý nghĩa thống kê** (+0,019, p = 0,37). Ở 100% nhãn nó ở ranh giới:
+Wilcoxon p = 0,019 với 19/25 lần thắng, **nhưng khoảng tin cậy bootstrap chạm 0**
+([−0,0005, +0,031]).
+
+Hai thống kê này không đồng thuận, và **phải báo cáo cả hai**. Wilcoxon xét mẫu hình dấu
+(19/25 thắng là mạnh); bootstrap xét trung bình, vốn bị vài seed âm lớn kéo xuống. Cách
+phát biểu trung thực: *bằng chứng gợi ý nhưng chưa dứt khoát*.
+
+Nghĩa là: **một phần lợi ích thấy được ở mục 2 đến từ nhãn microsome của các chất tương
+đồng gần với tập test** — tức rò rỉ một phần, chính thứ bản chặt sinh ra để loại.
+
+### Luận điểm "học coupling thắng cố định coupling": **vững, và còn mạnh lên**
+
++0,0333 và +0,0375, thắng 21/25 và 22/25, p = 0,0001 và 0,0012 — **mạnh hơn** bản lỏng.
+
+Lý do mạnh hơn và đáng tin hơn: hai arm này thấy **đúng cùng một dữ liệu**, nên mọi rò rỉ
+là **đồng pha và triệt tiêu**. Đây là so sánh nội bộ, miễn nhiễm với đúng vấn đề vừa làm
+yếu luận điểm kia.
+
+### Hệ quả cho bài
+
+**Con số đưa vào bài phải lấy từ bản chặt**, và luận điểm chính ngoài miền phải chuyển từ
+"ràng buộc thắng đơn nhiệm" sang **"học phép hiệu chỉnh thắng cố định nó"** — là thứ vừa
+đo chắc chắn hơn, vừa đúng là điểm khác biệt với PEMAL.
+
+Điều tôi đã báo cáo ở lượt trước (+0,0382, p = 0,0034) là **số của bản lỏng và không
+được dùng**.
 
 ## 7. Giới hạn
 
@@ -97,5 +144,6 @@ Bản chặt (`--strict`) phân cụm **hợp** của cả hai tập rồi loạ
 
 ## Việc tiếp theo
 
-- [ ] Lấy số từ bản `--strict` khi chạy xong, thay vào bài.
-- [ ] Độ nhạy theo cutoff phân cụm.
+- [ ] Độ nhạy theo cutoff phân cụm — hiện cố định 0,65.
+- [ ] Tăng số seed cho luận điểm "ràng buộc thắng đơn nhiệm ngoài miền": ở ranh giới ý
+      nghĩa, 25 seed chưa phân giải nổi.
