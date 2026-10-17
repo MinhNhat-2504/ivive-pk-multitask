@@ -1,6 +1,12 @@
 # Finding 03 — Trần nhiễu của phép đo
 
-> ## ⚠ ĐÃ BỊ BÁC BỎ MỘT PHẦN BỞI `notes/04-censoring.md`
+> ## ⛔ ĐÃ RÚT LẠI HOÀN TOÀN — XEM `notes/15-hepatocyte-species-pooling.md`
+>
+> 187/193 "nhóm đo lặp" dùng ở trang này là **cặp giá trị người + chuột của cùng một phân
+> tử**, không phải đo lặp. `sd_within` đo **khác biệt loài**, không phải nhiễu phép đo.
+> Mọi con số ICC và trần nhiễu ở đây **không dùng được**.
+>
+> (Cảnh báo cũ, nay đã bị thay thế:) ⚠ đã bị bác bỏ một phần bởi `notes/04-censoring.md`
 >
 > Con số trần **0,541** dưới đây **sai**. Nó được tính từ các nhóm đo lặp mà 87/193 nhóm
 > chứa giá trị bị kiểm duyệt ở ngưỡng phát hiện của assay, và tập nhóm đó lại còn bị

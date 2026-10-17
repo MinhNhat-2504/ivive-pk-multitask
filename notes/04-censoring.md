@@ -1,4 +1,14 @@
-# Finding 04 — Assay AZ bị kiểm duyệt hai đầu, và điều đó đã làm hỏng ước lượng trần nhiễu ở notes/03
+# Finding 04 — Assay AZ bị kiểm duyệt hai đầu
+
+> ## ⛔ PHẦN TRẦN NHIỄU ĐÃ RÚT LẠI — XEM `notes/15`
+>
+> Mục 2 và 3 của trang này "sửa" trần nhiễu từ 0,541 lên ≥0,764. **Cả hai con số đều
+> không dùng được**: các nhóm đo lặp mà cả hai dựa vào là **cặp người–chuột**, vì
+> `Clearance_Hepatocyte_AZ` của TDC gộp hai loài. Không còn ước lượng trần nhiễu nào cho
+> `cl_hep`.
+>
+> **Phần kiểm duyệt (mục 1) vẫn đúng** và giờ có nguồn trích dẫn trực tiếp từ mô tả assay
+> của ChEMBL.
 
 Ngày đo: 2026-10-17. Script: `src/eval/censoring.py`. Kết quả: `results/censoring*.csv`.
 
