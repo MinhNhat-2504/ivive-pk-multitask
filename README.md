@@ -20,7 +20,6 @@ Ràng buộc: well-stirred `CL_h = Q_h·f_u·CL_int / (Q_h + f_u·CL_int)`, rồ
 Xem `notes/` theo thứ tự, và bản thảo paper ở [paper/draft.md](paper/draft.md). Hai phát hiện đã có:
 - [01 — độ phủ nhãn](notes/01-task-overlap.md): chỉ 20 phân tử có đủ nhãn để khép vòng ràng buộc, nên ràng buộc phải áp **bán giám sát** trên dự đoán.
 - [02 — phương sai baseline](notes/02-baseline-variance.md): độ lệch giữa seed (0,055–0,122 Spearman) lớn hơn mức cải tiến nhắm tới, nên "vượt SOTA trên TDC" không làm luận điểm chính được.
-ràng buộc, nên ràng buộc phải áp kiểu **bán giám sát** trên dự đoán, không phải trên nhãn.
 
 ## Cài đặt
 
