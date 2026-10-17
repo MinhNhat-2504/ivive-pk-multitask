@@ -1,4 +1,17 @@
-# Finding 03 — Trần nhiễu của phép đo: đầu bảng TDC đã chạm trần
+# Finding 03 — Trần nhiễu của phép đo
+
+> ## ⚠ ĐÃ BỊ BÁC BỎ MỘT PHẦN BỞI `notes/04-censoring.md`
+>
+> Con số trần **0,541** dưới đây **sai**. Nó được tính từ các nhóm đo lặp mà 87/193 nhóm
+> chứa giá trị bị kiểm duyệt ở ngưỡng phát hiện của assay, và tập nhóm đó lại còn bị
+> điều kiện hoá trên "cặp bất đồng" vì TDC đã gộp bỏ các cặp trùng khớp.
+>
+> Loại hiện vật kiểm duyệt ra, trần tăng lên **≥ 0,764** — tức `cl_hep` **chưa bão hoà**
+> và còn dư địa thật. Xem `notes/04`.
+>
+> Giữ lại trang này vì **phương pháp** (phân rã phương sai, mô phỏng trần Spearman,
+> bootstrap theo nhóm) vẫn đúng và vẫn được dùng; chỉ con số là sai. Phần "Giới hạn" ở
+> cuối trang đã nêu đúng hướng nghi ngờ nhưng chưa đi tới cùng.
 
 Ngày đo: 2026-10-17. Script: `src/eval/noise_ceiling.py`, kết quả ở
 `results/noise_ceiling.csv`.

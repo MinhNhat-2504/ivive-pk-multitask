@@ -24,8 +24,13 @@ Xem `notes/` theo thứ tự, và bản thảo paper ở [paper/draft.md](paper/
 - [02 — phương sai giao thức](notes/02-baseline-variance.md): giao thức 5 seed của bảng
   TDC tự chế ra "cải tiến" tới 0,067 Spearman mà không đổi gì về mô hình — lớn hơn mục
   tiêu cải tiến ban đầu của dự án.
-- [03 — trần nhiễu](notes/03-noise-ceiling.md): chỉ 29% phương sai nhãn `cl_hep` là tín
-  hiệu thật; không phân biệt được mô hình đầu bảng với mức tối đa đạt được.
+- [03 — trần nhiễu](notes/03-noise-ceiling.md): phương pháp ước lượng trần nhiễu.
+  **⚠ Con số trong trang này đã bị `notes/04` bác bỏ một phần.**
+- [04 — kiểm duyệt assay](notes/04-censoring.md): 27–34% nhãn clearance là cờ ngưỡng phát
+  hiện, không phải phép đo. Sửa lại trần nhiễu từ 0,541 lên **≥ 0,764** — tức endpoint
+  **chưa bão hoà**, vẫn còn dư địa thật.
+- [05 — external set](notes/05-external-set.md): dựng được cho `ppbr` (n≈150–200) và
+  `half_life` (n≈140–165); nhánh in vitro **không lấy được từ hồ sơ FDA**.
 
 ## Cài đặt
 
@@ -48,4 +53,5 @@ Thay `.venv/Scripts/python` bằng `.venv/bin/python` trên macOS.
 .venv/Scripts/python -m src.models.baseline --seeds $(seq 1 25) --tag baseline_lgbm_25
 .venv/Scripts/python -m src.eval.noise_ceiling      # trần nhiễu từ các lần đo lặp
 .venv/Scripts/python -m src.eval.protocol_variance  # phương sai giao thức (cần bản 25 seed)
+.venv/Scripts/python -m src.eval.censoring          # kiểm duyệt assay + độ nhạy của trần nhiễu
 ```
