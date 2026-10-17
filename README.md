@@ -31,6 +31,16 @@ Xem `notes/` theo thứ tự, và bản thảo paper ở [paper/draft.md](paper/
   **chưa bão hoà**, vẫn còn dư địa thật.
 - [05 — external set](notes/05-external-set.md): dựng được cho `ppbr` (n≈150–200) và
   `half_life` (n≈140–165); nhánh in vitro **không lấy được từ hồ sơ FDA**.
+- [06 — kiểm chứng quan hệ IVIVE](notes/06-ivive-relation-validated.md): nhánh microsome
+  hoạt động (Spearman 0,891) với độ lệch đúng như y văn; nhánh hepatocyte chưa chứng minh
+  được. Ràng buộc chuyển sang cặp hep↔mic (n=395).
+- [07 — Tobit âm tính](notes/07-tobit-negative.md): hàm mất mát nhận thức kiểm duyệt
+  **không cải thiện gì**, trên cả Spearman lẫn MAE. Kết quả âm tính có lực thống kê.
+- [08 — giảm nhu cầu nhãn](notes/08-label-efficiency.md): **kết quả chính.** Ràng buộc
+  cho +0,053 ở 25% nhãn (p=0,006), hệ số thay thế ~1,7×. Ablation cho thấy lợi ích đến từ
+  việc **học** phép hiệu chỉnh, không phải từ dữ liệu thêm.
+- [09 — độ nhạy](notes/09-sensitivity.md): kết quả trên không phụ thuộc hai tham số chưa
+  tinh chỉnh; cả 8 cấu hình đều dương.
 
 ## Cài đặt
 
@@ -54,4 +64,7 @@ Thay `.venv/Scripts/python` bằng `.venv/bin/python` trên macOS.
 .venv/Scripts/python -m src.eval.noise_ceiling      # trần nhiễu từ các lần đo lặp
 .venv/Scripts/python -m src.eval.protocol_variance  # phương sai giao thức (cần bản 25 seed)
 .venv/Scripts/python -m src.eval.censoring          # kiểm duyệt assay + độ nhạy của trần nhiễu
+.venv/Scripts/python -m src.experiments.censored_vs_plain   # Tobit vs OLS, ghép cặp 25 seed
+.venv/Scripts/python -m src.experiments.label_efficiency    # kết quả chính + ablation
+.venv/Scripts/python -m src.experiments.sensitivity         # quét pseudo_weight / n_rounds
 ```
