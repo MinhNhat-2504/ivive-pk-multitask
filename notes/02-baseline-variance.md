@@ -1,70 +1,98 @@
-# Finding 02 — Baseline đơn nhiệm, và độ lệch giữa seed nuốt trọn mục tiêu cải tiến
+# Finding 02 — Giao thức đánh giá của bảng TDC tự chế ra được mức "cải tiến" lớn hơn mục tiêu của dự án
 
-Ngày đo: 2026-10-17. Script: `src/models/baseline.py`, kết quả thô ở `results/`.
-Giao thức: split scaffold của TDC, seed 1–5, LightGBM 600 cây trên 28 descriptor RDKit +
-Morgan count 1024 bit. Không tinh chỉnh siêu tham số, không early stopping.
+Ngày đo: 2026-10-17. Scripts: `src/models/baseline.py`, `src/eval/protocol_variance.py`.
+Kết quả: `results/baseline_lgbm_25_*.csv`, `results/protocol_variance.csv`.
 
-## Kết quả
+Giao thức: split scaffold của TDC, **25 seed**, LightGBM 600 cây trên 28 descriptor RDKit
++ Morgan count 1024 bit, không tinh chỉnh siêu tham số.
 
-| Endpoint | Chỉ số | Baseline của ta | min – max qua 5 seed | Đầu bảng TDC (theo PDF) |
-|---|---|---|---|---|
-| `cl_hep` | Spearman ↑ | **0,502 ± 0,055** | 0,450 – 0,582 | 0,536 |
-| `cl_mic` | Spearman ↑ | **0,578 ± 0,019** | 0,548 – 0,595 | 0,630 |
-| `vdss` | Spearman ↑ | **0,707 ± 0,054** | 0,633 – 0,758 | 0,713 |
-| `half_life` | Spearman ↑ | **0,409 ± 0,122** | 0,264 – 0,602 | 0,576 |
-| `ppbr` | MAE ↓ | **8,95 ± 0,42** | 8,46 – 9,41 | 7,44 |
+## 1. Baseline đơn nhiệm, 25 seed
 
-## Ba điều đọc ra
+| Endpoint | Chỉ số | Baseline (25 seed) | min – max | KTC 95% | Đầu bảng TDC |
+|---|---|---|---|---|---|
+| `cl_hep` | Spearman ↑ | 0,490 ± 0,054 | 0,364 – 0,582 | [0,379 – 0,563] | 0,536 |
+| `cl_mic` | Spearman ↑ | 0,577 ± 0,051 | 0,467 – 0,654 | [0,481 – 0,648] | 0,630 |
+| `vdss` | Spearman ↑ | 0,686 ± 0,045 | 0,596 – 0,758 | [0,615 – 0,749] | 0,713 |
+| `half_life` | Spearman ↑ | 0,452 ± 0,087 | 0,264 – 0,611 | [0,313 – 0,606] | 0,576 |
+| `ppbr` | MAE ↓ | 8,62 ± 0,75 | 7,14 – 9,76 | [7,16 – 9,70] | 7,44 |
 
-### 1. Mục tiêu cải tiến nhỏ hơn độ lệch giữa seed
+**Baseline của ta thật sự kém hơn đầu bảng.** Sai số chuẩn của trung bình 25 seed là
+sd/5, nên khoảng cách tới đầu bảng là 3–8 lần sai số chuẩn ở cả năm endpoint. Có dư địa
+tinh chỉnh và dư địa phương pháp thật. **Không được đọc phần dưới thành "baseline của ta
+ngang SOTA".**
 
-Mục tiêu đặt ra trong PDF là `cl_hep` 0,536 → 0,60 (+0,064) và `half_life` 0,576 → 0,63
-(+0,054). Nhưng chỉ riêng việc đổi seed của phép chia scaffold đã làm điểm xê dịch:
+## 2. Năm seed không đủ để ước lượng chính độ lệch chuẩn của nó
 
-- `cl_hep`: SD = 0,055 — **gần bằng toàn bộ mức cải tiến nhắm tới**.
-- `half_life`: SD = 0,122 — **gấp hơn hai lần mức cải tiến nhắm tới**. Khoảng min–max là
-  0,264–0,602, rộng 0,34, tức **gấp sáu lần** mức cải tiến.
+Lấy mẫu lại 20 000 lần: rút ngẫu nhiên 5 trong 25 seed, xem một lần chạy 5 seed sẽ báo
+cáo sd bằng bao nhiêu.
 
-Nghĩa là: một kết quả "cải thiện +0,05" báo cáo trên 5 seed **không phân biệt được
-phương pháp với may rủi của phép chia**. Đây không còn là phỏng đoán nữa — đó là số đo
-trên chính pipeline của ta.
+| Endpoint | sd thật (25 seed) | sd mà 5 seed báo cáo: trung vị | **khoảng 95%** |
+|---|---|---|---|
+| `cl_hep` | 0,054 | 0,050 | **[0,021 – 0,084]** |
+| `cl_mic` | 0,051 | 0,050 | **[0,019 – 0,076]** |
+| `vdss` | 0,045 | 0,044 | **[0,020 – 0,065]** |
+| `half_life` | 0,087 | 0,085 | **[0,026 – 0,137]** |
+| `ppbr` | 0,749 | 0,733 | **[0,272 – 1,092]** |
 
-### 2. Seed đơn lẻ của baseline thường đã chạm mức đầu bảng
+Một lần chạy 5 seed có thể báo sd **nhỏ hơn 2,5 lần** hoặc **lớn hơn 1,6 lần** sự thật.
 
-`half_life` seed 2 cho **0,602**, cao hơn con số 0,576 đang đứng đầu bảng. `vdss` cho
-0,707 ± 0,054, tức **ngang với 0,713 của MapLight+GNN** dù đây chỉ là LightGBM chưa tinh
-chỉnh. `cl_hep` seed 3 cho 0,582, cao hơn 0,536.
+Chính ta đã dính: lần chạy đầu với seed 1–5 cho `cl_mic` sd = **0,019**, trong khi sự
+thật trên 25 seed là **0,051** — rơi đúng vào đáy của khoảng trên. Nếu dừng ở 5 seed,
+ta đã kết luận `cl_mic` là endpoint ổn định nhất. Nó không phải.
 
-Điều này củng cố nhận định trong PDF rằng boosting trên descriptor đang ngang ngửa mô
-hình nền đồ thị trên nhóm endpoint này — và gợi ý rằng một phần ưu thế báo cáo của các
-mô hình đầu bảng có thể đến từ lựa chọn seed/giao thức chứ không từ năng lực mô hình.
-Chưa kết luận được: cần lấy độ lệch chuẩn mà chính bảng TDC công bố để so.
+**Hệ quả: dấu ± in trên bảng xếp hạng TDC, vốn tính từ 5 seed, không phải một ước lượng
+đáng tin cho phương sai giao thức.**
 
-### 3. Vẫn còn khoảng trống tinh chỉnh thật
+## 3. Phép thử quyết định — cùng một mô hình, hai lần chạy, chênh nhau bao nhiêu?
 
-Không được đọc hai điểm trên thành "baseline của ta đã bằng SOTA". Trung bình của ta
-thấp hơn đầu bảng ở `cl_hep` (0,502 vs 0,536), `cl_mic` (0,578 vs 0,630), `half_life`
-(0,409 vs 0,576) và `ppbr` (8,95 vs 7,44). Một phần khoảng cách đó là dư địa tinh chỉnh
-thật. Điều đã chứng minh được là **độ rộng của nhiễu**, không phải sự ngang bằng.
+Lấy **cùng một mô hình**, không đổi gì hết. Chạy hai lần theo đúng giao thức: mỗi lần 5
+seed, hai lần không chung seed nào. Chênh lệch giữa hai trung bình báo cáo chính là mức
+"cải tiến" mà riêng giao thức chế ra được. 20 000 lần rút.
 
-## Hệ quả cho thiết kế bài
+| Endpoint | trung vị \|chênh\| | **phân vị 95 \|chênh\|** | max \|chênh\| |
+|---|---|---|---|
+| `cl_hep` | 0,024 | **0,067** | 0,122 |
+| `cl_mic` | 0,022 | **0,063** | 0,124 |
+| `vdss` | 0,020 | **0,055** | 0,104 |
+| `half_life` | 0,037 | **0,105** | 0,200 |
+| `ppbr` (MAE) | 0,33 | **0,91** | 1,79 |
 
-1. **Bỏ "vượt SOTA trên TDC" khỏi luận điểm chính.** Với SD 0,055–0,122, luận điểm đó
-   không bảo vệ được trước reviewer, và PDF đã cảnh báo trước.
-2. **Giao thức đánh giá phải đổi.** 5 seed là không đủ. Cần ≥ 20 lần chia lặp lại, báo
-   cáo khoảng tin cậy, và kiểm định ghép cặp theo từng lần chia (paired test) giữa mô
-   hình có ràng buộc và không ràng buộc — so sánh ghép cặp khử được phương sai của phép
-   chia, vốn là nguồn nhiễu trội ở đây.
-3. **Đóng góp thứ hai của bài đã có sẵn:** định lượng phương sai giao thức của bảng xếp
-   hạng ADMET. Đây là kết quả tự thân, và nó biến đúng điểm yếu mà reviewer sẽ chỉ ra
-   thành một phần kết quả.
-4. **Luận điểm chính dời sang:** ràng buộc IVIVE mang lại *tính nhất quán cơ chế* và
-   *khả năng khái quát ra miền ngoài* — đo trên tập external theo thời gian — chứ không
-   phải vài phần trăm trên bảng.
+Đọc thẳng:
+
+> Trên `cl_hep`, cùng một mô hình chạy hai lần theo giao thức của bảng sẽ cho chênh lệch
+> **≥ 0,067 Spearman trong 5% số lần**, mà không thay đổi gì về mô hình.
+
+**Mục tiêu ban đầu của dự án là +0,064 trên `cl_hep` và +0,054 trên `half_life`.**
+Cả hai đều **nhỏ hơn** phân vị 95 của chênh lệch giả (0,067 và 0,105). Nghĩa là đúng mức
+cải tiến đó phát sinh thuần tuý do chọn seed, với tần suất trên 5%, khi **không làm gì cả**.
+
+Và theo PDF, top-5 của `Clearance_Microsome` chênh nhau **0,005** — trong khi trung vị
+chênh lệch giả của endpoint này là **0,022**, gấp hơn bốn lần toàn bộ khoảng cách top-5.
+Thứ tự xếp hạng giữa các mô hình đầu bảng không mang thông tin.
+
+## 4. Kết luận
+
+Ba điều, độc lập nhau, đều đo được:
+
+1. Phương sai giao thức lớn (sd 0,045–0,087 Spearman).
+2. Năm seed không ước lượng nổi chính phương sai đó.
+3. Giao thức tự chế ra được "cải tiến" lớn hơn mục tiêu mà dự án này đặt ra ban đầu.
+
+Kết hợp với `notes/03` (trần nhiễu `cl_hep` ≈ 0,541): bảng xếp hạng ADMET trên nhóm
+endpoint dược động học **không còn đo được sự khác biệt giữa các phương pháp nữa**.
+
+## 5. Hệ quả cho thiết kế bài
+
+1. **Bỏ hẳn "vượt SOTA trên TDC" khỏi luận điểm.** Không phải vì khó, mà vì vô nghĩa.
+2. **Mọi so sánh phải ghép cặp theo từng lần chia** (paired, cùng seed cho cả hai mô
+   hình). So sánh ghép cặp khử phương sai phép chia — vốn là nguồn nhiễu trội — và là
+   cách duy nhất còn lại để phát hiện hiệu ứng cỡ 0,02.
+3. **Dùng ≥ 25 seed**, báo cáo KTC, và báo cáo cả phân phối chênh lệch ghép cặp.
+4. Mục 2 và 3 ở trên **chính là một đóng góp phương pháp luận của bài**, không phải phần
+   phụ lục.
 
 ## Việc tiếp theo
 
-- [ ] Chạy lại baseline với ≥ 20 lần chia lặp lại để có khoảng tin cậy thật.
-- [ ] Lấy độ lệch chuẩn công bố của bảng TDC để so trực tiếp.
-- [ ] Ước lượng trần nhiễu thực nghiệm từ các lần đo lặp trong dữ liệu thô.
-- [ ] Dựng external set theo thời gian từ Drugs@FDA (thuốc duyệt sau 2016).
+- [ ] Hạ tầng so sánh ghép cặp theo seed (dùng cho mọi thí nghiệm về sau).
+- [ ] Vẽ chung một hình: phân phối baseline 25 seed + trần nhiễu + điểm đầu bảng.
+- [ ] Lấy độ lệch chuẩn mà chính bảng TDC công bố, để đối chiếu trực tiếp mục 2.
