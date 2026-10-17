@@ -5,3 +5,4 @@ data/raw/
 data/processed/
 results/
 .DS_Store
+data/external/drugsfda.json
