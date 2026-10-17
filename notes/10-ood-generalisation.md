@@ -135,6 +135,39 @@ yếu luận điểm kia.
 Điều tôi đã báo cáo ở lượt trước (+0,0382, p = 0,0034) là **số của bản lỏng và không
 được dùng**.
 
+## 6c. Chạy 60 seed — giải quyết luận điểm ranh giới, theo hướng ÂM TÍNH
+
+`notes/10` bản trước ghi rằng luận điểm "ràng buộc thắng đơn nhiệm ngoài miền" ở ranh giới
+và 25 seed chưa phân giải nổi. Chạy lại với **60 seed**:
+
+| Mức nhãn | So sánh | 25 seed | **60 seed** | thắng | p (60) |
+|---|---|---|---|---|---|
+| 100% | ràng buộc − đơn nhiệm | +0,0154 (p=0,019) | **−0,0004** | 33/60 | **0,57** |
+| 100% | identity − đơn nhiệm | −0,0178 (p=0,12) | **−0,0330** | 18/60 | **0,0005** |
+| 100% | **Deming − identity** | +0,0333 | **+0,0325** | **46/60** | **<0,0001** |
+| 50% | ràng buộc − đơn nhiệm | +0,0190 (p=0,37) | **+0,0036** | 30/60 | 0,77 |
+| 50% | identity − đơn nhiệm | −0,0185 | −0,0256 | 23/60 | 0,092 |
+| 50% | **Deming − identity** | +0,0375 | **+0,0291** | **47/60** | **<0,0001** |
+
+### Ba kết luận
+
+1. **"Ràng buộc thắng đơn nhiệm ngoài miền" CHẾT.** Ở 100% nhãn, 25 seed cho +0,0154 với
+   Wilcoxon p = 0,019 và thắng 19/25 — trông rất thuyết phục. Ở 60 seed nó là **−0,0004,
+   p = 0,57, thắng 33/60**. Hiệu ứng tưởng có là nhiễu.
+2. **"Học coupling thắng cố định coupling" VỮNG** và gần như không đổi: +0,0325 và +0,0291,
+   thắng 46/60 và 47/60, p < 0,0001.
+3. **"Cố định coupling thì có hại" giờ có ý nghĩa thống kê**: −0,0330, p = 0,0005 (ở 25
+   seed chỉ p = 0,12).
+
+### Đây chính là điều bài này đang nói về, xảy ra với chính mình
+
+25 seed, Wilcoxon p = 0,019, thắng 19/25 — và nó là nhiễu. Đúng mẫu hình mà `notes/02`
+và `notes/13` cảnh báo. Sự khác biệt duy nhất giữa luận điểm sống và luận điểm chết là
+**so sánh nào có cả hai arm thấy cùng dữ liệu**: ablation Deming−identity miễn nhiễm với
+phương sai phép chia vì nó ghép cặp hoàn hảo; so sánh với đơn nhiệm thì không.
+
+**Số đưa vào bài lấy từ bản 60 seed.**
+
 ## 7. Giới hạn
 
 1. Cụm Butina ở cutoff 0,65 — chưa kiểm độ nhạy theo cutoff.
@@ -145,5 +178,4 @@ yếu luận điểm kia.
 ## Việc tiếp theo
 
 - [ ] Độ nhạy theo cutoff phân cụm — hiện cố định 0,65.
-- [ ] Tăng số seed cho luận điểm "ràng buộc thắng đơn nhiệm ngoài miền": ở ranh giới ý
-      nghĩa, 25 seed chưa phân giải nổi.
+- [x] ~~Tăng số seed cho luận điểm ranh giới~~ → **đã làm, 60 seed, kết quả âm tính** (§6c).
