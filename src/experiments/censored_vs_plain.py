@@ -57,21 +57,45 @@ def run_seed(dataset: ADME, key: str, seed: int) -> list[dict]:
     tobit = CensoredLGBM(lo_s, hi_s, random_state=seed, **LGBM_PARAMS).fit(x_train, y_train)
 
     uncensored_test = ~(np.isclose(y_test_raw, lo) | np.isclose(y_test_raw, hi))
+    pred_plain, pred_tobit = plain.predict(x_test), tobit.predict(x_test)
+    y_test_log = _forward(y_test_raw, spec["log"])
+
     rows = []
-    for subset, mask in (("all test rows", np.ones_like(uncensored_test)), ("uncensored test rows", uncensored_test)):
+    for subset, mask in (
+        ("all test rows", np.ones_like(uncensored_test)),
+        ("uncensored test rows", uncensored_test),
+    ):
         if mask.sum() < 10:
             continue
+        common = {"endpoint": key, "seed": seed, "subset": subset, "n_test": int(mask.sum())}
+        # Spearman on the measured scale, as the leaderboard scores it.
         rows.append(
             {
-                "endpoint": key,
-                "seed": seed,
-                "subset": subset,
-                "n_test": int(mask.sum()),
-                "plain": score(y_test_raw[mask], plain.predict(x_test)[mask], spec["metric"]),
-                "tobit": score(y_test_raw[mask], tobit.predict(x_test)[mask], spec["metric"]),
+                **common,
+                "metric": "spearman",
+                "plain": score(y_test_raw[mask], _inverse_or_raw(pred_plain, spec)[mask], "spearman"),
+                "tobit": score(y_test_raw[mask], _inverse_or_raw(pred_tobit, spec)[mask], "spearman"),
+            }
+        )
+        # MAE on the log scale the models are fitted in. A rank metric is
+        # largely blind to censoring -- the limit groups are already the
+        # extremes of the ordering, so placing them correctly costs nothing --
+        # whereas an error metric on values is exactly where a misspecified
+        # likelihood should show.
+        rows.append(
+            {
+                **common,
+                "metric": "mae_log",
+                "plain": float(np.abs(y_test_log[mask] - pred_plain[mask]).mean()),
+                "tobit": float(np.abs(y_test_log[mask] - pred_tobit[mask]).mean()),
             }
         )
     return rows
+
+
+def _inverse_or_raw(prediction: np.ndarray, spec: dict) -> np.ndarray:
+    """Back to the measured scale, for metrics computed against raw labels."""
+    return np.expm1(prediction) if spec["log"] else prediction
 
 
 def paired_summary(frame: pd.DataFrame, higher_is_better: bool) -> dict:
@@ -114,22 +138,21 @@ def main() -> None:
         for seed in args.seeds:
             rows = run_seed(dataset, key, seed)
             records.extend(rows)
-            shown = {r["subset"]: (r["plain"], r["tobit"]) for r in rows}
-            log.info("%s seed %2d: %s", key, seed, shown)
+            delta = {(r["subset"], r["metric"]): round(r["tobit"] - r["plain"], 4) for r in rows}
+            log.info("%s seed %2d, tobit - plain: %s", key, seed, delta)
 
     per_seed = pd.DataFrame(records)
 
     summaries = []
-    for (endpoint, subset), group in per_seed.groupby(["endpoint", "subset"]):
-        higher = ENDPOINT_SPEC[endpoint]["metric"] == "spearman"
+    for (endpoint, subset, metric), group in per_seed.groupby(["endpoint", "subset", "metric"]):
         summaries.append(
             {
                 "endpoint": endpoint,
                 "subset": subset,
-                "metric": ENDPOINT_SPEC[endpoint]["metric"],
+                "metric": metric,
                 "plain_mean": group["plain"].mean(),
                 "tobit_mean": group["tobit"].mean(),
-                **paired_summary(group, higher),
+                **paired_summary(group, higher_is_better=metric == "spearman"),
             }
         )
     summary = pd.DataFrame(summaries)
