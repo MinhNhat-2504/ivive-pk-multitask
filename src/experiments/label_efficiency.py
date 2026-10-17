@@ -91,14 +91,25 @@ def run_seed(
         x_b, ok_b = featurise(pool["smiles"].tolist())
         pool = pool.loc[ok_b]
         lo, hi = ASSAY_LIMITS["cl_hep"]
-        arm_b = ConstrainedMultitask(random_state=seed, **LGBM_PARAMS).fit(
-            x_b,
-            pool["cl_hep"].to_numpy(dtype=float),
-            pool["cl_mic"].to_numpy(dtype=float),
-            censored_hep=np.isin(pool["cl_hep"].to_numpy(), [lo, hi]),
-            censored_mic=np.isin(pool["cl_mic"].to_numpy(), ASSAY_LIMITS["cl_mic"]),
-        )
-        score_b = float(spearmanr(y_test, arm_b.predict(x_test, "hep")).statistic)
+        # Arm B and its ablation differ only in how the coupling is obtained.
+        # "identity" assumes physiological scaling alone makes the two systems
+        # agree and learns nothing -- the assumption a textbook treatment would
+        # make, and the respect in which PEMAL fixes its coefficients in
+        # advance. If arm B only beats single-task because it sees a second
+        # dataset, the ablation will match it; if learning the correction is
+        # what matters, it will not.
+        scores = {"single_task": score_a}
+        for arm, mode in (("constrained", "deming"), ("constrained_identity", "identity")):
+            model = ConstrainedMultitask(
+                coupling_mode=mode, random_state=seed, **LGBM_PARAMS
+            ).fit(
+                x_b,
+                pool["cl_hep"].to_numpy(dtype=float),
+                pool["cl_mic"].to_numpy(dtype=float),
+                censored_hep=np.isin(pool["cl_hep"].to_numpy(), [lo, hi]),
+                censored_mic=np.isin(pool["cl_mic"].to_numpy(), ASSAY_LIMITS["cl_mic"]),
+            )
+            scores[arm] = float(spearmanr(y_test, model.predict(x_test, "hep")).statistic)
 
         rows.append(
             {
@@ -107,13 +118,14 @@ def run_seed(
                 "n_hep_labels": int(ok_a.sum()),
                 "n_mic_labels": int(np.isfinite(pool["cl_mic"].to_numpy(dtype=float)).sum()),
                 "n_mic_dropped_for_leakage": n_dropped,
-                "single_task": score_a,
-                "constrained": score_b,
+                **scores,
             }
         )
         log.info(
-            "seed %2d frac %.2f: single %.4f  constrained %.4f  (delta %+.4f)",
-            seed, fraction, score_a, score_b, score_b - score_a,
+            "seed %2d frac %.2f: single %.4f  deming %.4f (%+.4f)  identity %.4f (%+.4f)",
+            seed, fraction, score_a,
+            scores["constrained"], scores["constrained"] - score_a,
+            scores["constrained_identity"], scores["constrained_identity"] - score_a,
         )
     return rows
 
@@ -121,27 +133,38 @@ def run_seed(
 def summarise(per_seed: pd.DataFrame) -> pd.DataFrame:
     rng = np.random.default_rng(0)
     rows = []
+    comparisons = [
+        ("constrained", "single_task"),
+        ("constrained_identity", "single_task"),
+        ("constrained", "constrained_identity"),
+    ]
     for fraction, group in per_seed.groupby("fraction"):
-        diff = (group["constrained"] - group["single_task"]).to_numpy()
-        boot = np.array([rng.choice(diff, diff.size, replace=True).mean() for _ in range(N_BOOT)])
-        try:
-            p_value = float(wilcoxon(diff).pvalue)
-        except ValueError:
-            p_value = float("nan")
-        rows.append(
-            {
-                "fraction": fraction,
-                "n_hep_labels": int(group["n_hep_labels"].mean()),
-                "single_task": group["single_task"].mean(),
-                "constrained": group["constrained"].mean(),
-                "mean_delta": diff.mean(),
-                "ci_lo": float(np.percentile(boot, 2.5)),
-                "ci_hi": float(np.percentile(boot, 97.5)),
-                "wins": int((diff > 0).sum()),
-                "n_seeds": diff.size,
-                "wilcoxon_p": p_value,
-            }
-        )
+        for arm, reference in comparisons:
+            if arm not in group or reference not in group:
+                continue
+            diff = (group[arm] - group[reference]).to_numpy()
+            boot = np.array(
+                [rng.choice(diff, diff.size, replace=True).mean() for _ in range(N_BOOT)]
+            )
+            try:
+                p_value = float(wilcoxon(diff).pvalue)
+            except ValueError:
+                p_value = float("nan")
+            rows.append(
+                {
+                    "fraction": fraction,
+                    "n_hep_labels": int(group["n_hep_labels"].mean()),
+                    "comparison": f"{arm} - {reference}",
+                    "arm_mean": group[arm].mean(),
+                    "reference_mean": group[reference].mean(),
+                    "mean_delta": diff.mean(),
+                    "ci_lo": float(np.percentile(boot, 2.5)),
+                    "ci_hi": float(np.percentile(boot, 97.5)),
+                    "wins": int((diff > 0).sum()),
+                    "n_seeds": diff.size,
+                    "wilcoxon_p": p_value,
+                }
+            )
     return pd.DataFrame(rows)
 
 

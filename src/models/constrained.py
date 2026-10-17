@@ -88,7 +88,10 @@ def deming_fit(x: np.ndarray, y: np.ndarray, variance_ratio: float = 1.0) -> tup
 
 
 def fit_coupling(
-    clint_hep: np.ndarray, clint_mic: np.ndarray, censored: np.ndarray
+    clint_hep: np.ndarray,
+    clint_mic: np.ndarray,
+    censored: np.ndarray,
+    mode: str = "deming",
 ) -> AffineCoupling:
     """Fit the between-system correction on molecules measured in both systems.
 
@@ -101,11 +104,28 @@ def fit_coupling(
     log_hep = np.log10(np.clip(clint_hep[usable] * HEPATOCYTE_SCALE, 1e-6, None))
     log_mic = np.log10(np.clip(clint_mic[usable] * MICROSOME_SCALE, 1e-6, None))
 
+    if mode == "identity":
+        # Ablation standing in for the textbook assumption, and for PEMAL's use
+        # of coefficients fixed in advance: physiological scaling alone is taken
+        # to make the two systems agree, with nothing learned from the data.
+        residuals = log_mic - log_hep
+        return AffineCoupling(
+            intercept=0.0,
+            slope=1.0,
+            n_fitted=int(usable.sum()),
+            residual_sd=float(residuals.std(ddof=1)) if usable.sum() > 1 else np.nan,
+        )
+
     if usable.sum() < 20:
         log.warning("only %d usable pairs; falling back to identity", int(usable.sum()))
         return AffineCoupling(n_fitted=int(usable.sum()))
 
-    slope, intercept = deming_fit(log_hep, log_mic)
+    if mode == "ols":
+        slope, intercept = np.polyfit(log_hep, log_mic, deg=1)
+    elif mode == "deming":
+        slope, intercept = deming_fit(log_hep, log_mic)
+    else:
+        raise ValueError(f"unknown coupling mode: {mode}")
     residuals = log_mic - (intercept + slope * log_hep)
     return AffineCoupling(
         intercept=float(intercept),
@@ -148,11 +168,13 @@ class ConstrainedMultitask:
         self,
         n_rounds: int = 2,
         pseudo_weight: float = 0.3,
+        coupling_mode: str = "deming",
         random_state: int = 0,
         **lgbm_params,
     ):
         self.n_rounds = n_rounds
         self.pseudo_weight = pseudo_weight
+        self.coupling_mode = coupling_mode
         self.random_state = random_state
         self.lgbm_params = lgbm_params
         self.heads_: dict[str, LGBMRegressor] = {}
@@ -170,7 +192,10 @@ class ConstrainedMultitask:
         has_hep, has_mic = np.isfinite(y_hep), np.isfinite(y_mic)
         both = has_hep & has_mic
         self.coupling_ = fit_coupling(
-            y_hep[both], y_mic[both], (censored_hep | censored_mic)[both]
+            y_hep[both],
+            y_mic[both],
+            (censored_hep | censored_mic)[both],
+            mode=self.coupling_mode,
         )
         log.info(
             "coupling: log10 CLmic = %.3f + %.3f * log10 CLhep  (n=%d, residual sd %.3f)",
