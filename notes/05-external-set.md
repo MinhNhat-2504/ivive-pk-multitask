@@ -132,8 +132,73 @@ Dữ liệu AZ: ChEMBL **CHEMBL3301361**, nộp ~2015–2016. Lombardo 2016. Oba
 EMA EPAR (không thấy API, và dính cùng vấn đề CL/F), PK-DB (pk-db.com), PharmGKB,
 Open Systems Pharmacology. Không chặn việc hiện tại.
 
+---
+
+# PHẦN B — Số đo thật sau khi dựng bước 1–3 (2026-10-17)
+
+Modules: `src/data/fda_nme.py`, `src/data/fda_labels.py`, `src/data/external_overlap.py`.
+Dữ liệu: `data/external/`.
+
+## B1. Bước 1 — NME từ 2017
+
+Lọc `drugsfda` bulk: `ORIG` + `AP` + `Type 1 - New Molecular Entity`, ngày ≥ 2017-01-01.
+
+**471 NME**, trong đó **336 NDA** và 135 BLA.
+
+> Lệch so với khảo sát ban đầu: khảo sát báo 451 cho 2017–2025, bộ lọc này cho 428 cho
+> cùng cửa sổ. Bộ lọc ở đây bắt buộc thêm trạng thái `AP`. Dùng số của chính mình vì nó
+> tái lập được từ module.
+
+## B2. Bước 2–3 — nhãn và cấu trúc, trên 336 NDA
+
+| | n | % |
+|---|---|---|
+| khớp nhãn trong openFDA | 263 | 78% |
+| **có mục `pharmacokinetics` (SPL 12.3)** | **254** | **76%** |
+| giải được cấu trúc | 311 | 93% |
+| — qua PubChem | 311 | |
+| — qua ChEMBL (dự phòng) | 0 | |
+| **có cả PK text lẫn cấu trúc** | **234** | **70%** |
+
+Tỷ lệ khớp openFDA 78% khớp với mức ~81% mà khảo sát dự kiến. PubChem phủ 100% phần giải
+được, nên **không cần dự phòng ChEMBL và càng không cần pipeline UNII** — đúng khuyến nghị.
+
+## B3. Lọc phân tử nhỏ
+
+311 cấu trúc → **277 phân tử nhỏ**. Loại 34: 32 do khối lượng ngoài dải 100–900, 1 chứa
+Si, 1 chứa Xe. Sau khử trùng: **272 phân tử duy nhất**.
+
+## B4. Trùng lặp với dữ liệu huấn luyện TDC — **đây là số quyết định**
+
+| Endpoint | n TDC | trùng InChIKey | trùng khung InChIKey | trùng scaffold |
+|---|---|---|---|---|
+| `cl_hep` | 1 020 | 7 | 7 | 22 |
+| `cl_mic` | 1 102 | 3 | 3 | 14 |
+| `ppbr` | 1 614 | 3 | 4 | 22 |
+| `vdss` | 1 111 | 2 | 9 | 28 |
+| `half_life` | 665 | 2 | 3 | 24 |
+
+Trùng ở **ít nhất một** tập TDC (khớp khung, tức bỏ qua lập thể và dạng muối): **17 / 272
+(6,3%)**.
+
+> **255 ứng viên external sạch về thời gian, 194 trong đó có mục PK.**
+
+Trùng scaffold cao hơn (14–28) nhưng **không phải rò rỉ** — dùng chung khung hoá học là
+bình thường, không phải cùng một chất.
+
+## B5. Còn lại gì
+
+194 mục PK **chưa được trích xuất tham số**. Đây là bước 5 của đường ống và là phần việc
+còn lại lớn nhất: phải trích xuất theo **ngữ nghĩa**, xuất kèm cờ biểu kiến `/F`, đường
+xác định, trạng thái kiểm duyệt và câu trích nguồn.
+
+Áp tỷ lệ trích xuất đo được ở khảo sát (PPB 78%, t½ 61%) lên 194 mục: ước **~151 cho
+`ppbr`** và **~118 cho `half_life`** — `ppbr` khớp dự kiến, `half_life` thấp hơn dải
+140–165 đã nêu.
+
 ## Việc tiếp theo
 
+- [ ] **Bước 5 — trích xuất ngữ nghĩa trên 194 mục PK.** Việc lớn nhất còn lại.
+- [ ] Khử trùng với `FDA_v2.csv` / `External_test_315.csv` của PKSmart.
 - [ ] Đọc toàn văn Koleiev et al. trước khi trích dẫn.
-- [ ] Dựng bước 1–3 của đường ống, báo cáo n thật thay cho ước lượng.
 - [ ] Kiểm lại 42 dòng của PKSmart, ghi lại số nào bị `/F` nhiễm.

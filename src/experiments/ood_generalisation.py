@@ -58,6 +58,7 @@ def run_seed(
     mic_labels: pd.DataFrame,
     seed: int,
     fractions: list[float],
+    mic_cluster_of: dict[str, int] | None = None,
 ) -> list[dict]:
     test_mask = assign_test(clusters, len(frame), test_size=0.2, seed=seed)
     train_all = frame.loc[~test_mask]
@@ -67,7 +68,16 @@ def run_seed(
         frame["smiles"].tolist(), ~test_mask, test_mask
     )
 
-    mic_safe = mic_labels[~mic_labels["smiles"].isin(set(test["smiles"]))]
+    # Excluding only the test molecules themselves is too weak for an
+    # extrapolation claim: a microsome label on a close analogue of a test
+    # molecule tells the constrained arm about that chemical series, which is
+    # the very thing being held out. Under `mic_cluster_of` the exclusion
+    # extends to every microsome molecule sharing a cluster with the test set.
+    excluded = set(test["smiles"])
+    if mic_cluster_of is not None:
+        test_clusters = {mic_cluster_of[s] for s in test["smiles"] if s in mic_cluster_of}
+        excluded |= {s for s, c in mic_cluster_of.items() if c in test_clusters}
+    mic_safe = mic_labels[~mic_labels["smiles"].isin(excluded)]
     x_test, ok_test = featurise(test["smiles"].tolist())
     y_test = test["cl_hep"].to_numpy()[ok_test]
 
@@ -116,6 +126,7 @@ def run_seed(
                 "fraction": fraction,
                 "n_train": int(ok_a.sum()),
                 "n_test": int(ok_test.sum()),
+                "n_mic_available": int(len(mic_safe)),
                 "nn_sim_median": difficulty.get("nn_sim_median", np.nan),
                 **scores,
             }
@@ -166,6 +177,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--seeds", nargs="*", type=int, default=list(range(1, 26)))
     parser.add_argument("--fractions", nargs="*", type=float, default=FRACTIONS)
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="also withhold microsome labels sharing a cluster with the test set",
+    )
+    parser.add_argument("--tag", default="ood")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
@@ -189,15 +206,32 @@ def main() -> None:
     log.info("%d clusters; largest %d", len(clusters), max(len(c) for c in clusters))
 
     mic_labels = load_mic_labels()
+
+    mic_cluster_of = None
+    if args.strict:
+        # Cluster the union so microsome-only molecules carry a cluster label
+        # comparable with the hepatocyte molecules the test set is drawn from.
+        union = sorted(set(frame["smiles"]) | set(mic_labels["smiles"]))
+        log.info("strict mode: clustering union of %d molecules", len(union))
+        union_bits, union_ok = fingerprints(union)
+        union = [s for s, keep in zip(union, union_ok) if keep]
+        mic_cluster_of = {
+            union[i]: cluster_index
+            for cluster_index, members in enumerate(butina_clusters(union_bits))
+            for i in members
+        }
+
     records = []
     for seed in args.seeds:
-        records.extend(run_seed(frame, clusters, mic_labels, seed, args.fractions))
+        records.extend(
+            run_seed(frame, clusters, mic_labels, seed, args.fractions, mic_cluster_of)
+        )
 
     per_seed = pd.DataFrame(records)
     summary = summarise(per_seed)
     RESULTS_ROOT.mkdir(parents=True, exist_ok=True)
-    per_seed.to_csv(RESULTS_ROOT / "ood_per_seed.csv", index=False)
-    summary.to_csv(RESULTS_ROOT / "ood_summary.csv", index=False)
+    per_seed.to_csv(RESULTS_ROOT / f"{args.tag}_per_seed.csv", index=False)
+    summary.to_csv(RESULTS_ROOT / f"{args.tag}_summary.csv", index=False)
 
     print(f"\nmedian nearest-neighbour similarity, test to train: "
           f"{per_seed['nn_sim_median'].mean():.3f}")
