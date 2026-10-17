@@ -2,10 +2,11 @@
 
 Three, one per claim that a reader will not take on the strength of a table:
 
-    1  where the baseline sits between the reproducible reference and the
-       corrected noise ceiling, and how wide the seed spread is around it
+    1  where the baseline sits against the reproducible reference, and how much
+       wider the spread becomes once the scored molecules are resampled
     2  the label-efficiency curve, with the ablation that says what causes it
-    3  the censoring that governs both the ceiling estimate and the data itself
+    3  the censoring at the assays' declared detection limits
+    4  the species composition of the hepatocyte clearance benchmark
 
 Palette is Okabe-Ito, chosen because it survives dichromacy and greyscale
 printing; it passes the lightness band, chroma floor, CVD separation,
@@ -55,8 +56,8 @@ mpl.rcParams.update(
 )
 
 
-def figure_1_ceiling() -> None:
-    """Baseline seed spread against the reference and the corrected ceiling."""
+def figure_1_spread() -> None:
+    """Baseline seed spread against the reproducible reference, under both protocols."""
     per_seed = pd.read_csv(RESULTS_ROOT / "leaderboard_protocol_per_seed.csv")
     resampled = pd.read_csv(RESULTS_ROOT / "baseline_lgbm_25_per_seed.csv")
 
@@ -69,9 +70,10 @@ def figure_1_ceiling() -> None:
     }
     # MapLight+GNN as re-evaluated by the end-user audit; the top-ranked entry
     # on two of these endpoints could not be obtained, so it is not the
-    # reference. Ceiling is available only for hepatocyte clearance.
+    # reference. No noise ceiling is drawn: the estimate this figure once
+    # carried was retracted, since the replicate groups behind it are
+    # human/rat pairs rather than repeat measurements (Section 5.2).
     reference = {"cl_hep": 0.500, "cl_mic": 0.635, "vdss": 0.716, "half_life": 0.563}
-    ceiling = {"cl_hep": 0.764}
 
     fig, ax = plt.subplots(figsize=(5.2, 2.9))
     rng = np.random.default_rng(0)
@@ -94,19 +96,10 @@ def figure_1_ceiling() -> None:
 
         ax.plot([reference[key]], [row], marker="D", markersize=5.5,
                 color=INK, zorder=5, clip_on=False)
-        if key in ceiling:
-            ax.axvline(ceiling[key], ymin=(row + 0.1) / len(order),
-                       ymax=(row + 0.9) / len(order),
-                       color=GREEN, linewidth=1.8, zorder=2)
-            ax.annotate(
-                "noise ceiling\n(lower bound)", xy=(ceiling[key], row), xytext=(4, 0),
-                textcoords="offset points", fontsize=6.5, color=GREEN,
-                va="center", linespacing=1.3,
-            )
 
     ax.set_yticks(range(len(order)), [labels[k] for k in order])
     ax.set_xlabel("Spearman correlation")
-    ax.set_xlim(0.25, 0.86)
+    ax.set_xlim(0.25, 0.80)
     ax.grid(axis="x", zorder=0)
     ax.set_axisbelow(True)
 
@@ -121,8 +114,8 @@ def figure_1_ceiling() -> None:
     ax.legend(handles=handles, loc="upper left", bbox_to_anchor=(0, 1.22),
               ncol=1, fontsize=6.5, handletextpad=0.4)
     fig.tight_layout()
-    fig.savefig(FIGURE_ROOT / "fig1_ceiling_and_spread.png", bbox_inches="tight")
-    fig.savefig(FIGURE_ROOT / "fig1_ceiling_and_spread.pdf", bbox_inches="tight")
+    fig.savefig(FIGURE_ROOT / "fig1_protocol_spread.png", bbox_inches="tight")
+    fig.savefig(FIGURE_ROOT / "fig1_protocol_spread.pdf", bbox_inches="tight")
     plt.close(fig)
 
 
@@ -233,11 +226,64 @@ def figure_3_censoring() -> None:
     plt.close(fig)
 
 
+def figure_4_species() -> None:
+    """What Clearance_Hepatocyte_AZ is actually made of."""
+    from src.data.chembl_az import load
+
+    az = load()
+    counts = {
+        "human\nhepatocyte": az[az["assay"] == "cl_hep_human"].shape[0],
+        "rat\nhepatocyte": az[az["assay"] == "cl_hep_rat"].shape[0],
+    }
+    # Record-level value matching against TDC, from notes/15.
+    matched = {"human value": 370, "rat value": 796, "both agree": 31, "neither": 16}
+
+    fig, (left, right) = plt.subplots(1, 2, figsize=(6.2, 2.4),
+                                      gridspec_kw={"width_ratios": [1, 1.5]})
+
+    left.bar(list(counts), list(counts.values()),
+             color=[BLUE, VERMILLION], width=0.6, zorder=3)
+    for i, (label, value) in enumerate(counts.items()):
+        left.annotate(str(value), xy=(i, value), xytext=(0, 3),
+                      textcoords="offset points", ha="center", fontsize=7, color=INK)
+    left.set_ylabel("records in the deposition")
+    left.set_title("source assays, species-labelled", fontsize=8)
+    left.grid(axis="y", zorder=0)
+    left.set_axisbelow(True)
+
+    colours = [BLUE, VERMILLION, MUTED, GRID]
+    start = 0.0
+    total = sum(matched.values())
+    for (label, value), colour in zip(matched.items(), colours):
+        right.barh([0], [value], left=[start], color=colour, height=0.5, zorder=3)
+        if value / total > 0.05:
+            right.annotate(
+                f"{label}\n{value} ({100 * value / total:.0f}%)",
+                xy=(start + value / 2, 0), ha="center", va="center",
+                fontsize=7, color="white" if colour in (BLUE, VERMILLION) else INK,
+                linespacing=1.3,
+            )
+        start += value
+    right.set_xlim(0, total)
+    right.set_yticks([])
+    right.set_xlabel("TDC Clearance_Hepatocyte_AZ records, matched by value")
+    right.set_title("what the benchmark contains", fontsize=8)
+    for spine in ("left", "bottom"):
+        right.spines[spine].set_visible(False)
+    right.tick_params(axis="x", length=0)
+
+    fig.tight_layout()
+    fig.savefig(FIGURE_ROOT / "fig4_species_pooling.png", bbox_inches="tight")
+    fig.savefig(FIGURE_ROOT / "fig4_species_pooling.pdf", bbox_inches="tight")
+    plt.close(fig)
+
+
 def main() -> None:
     FIGURE_ROOT.mkdir(parents=True, exist_ok=True)
-    figure_1_ceiling()
+    figure_1_spread()
     figure_2_label_efficiency()
     figure_3_censoring()
+    figure_4_species()
     for path in sorted(FIGURE_ROOT.glob("*.png")):
         print(f"wrote {path}")
 
