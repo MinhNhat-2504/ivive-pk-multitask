@@ -16,76 +16,81 @@ Mô hình **học được** nhưng **không ngoại suy được** sang chuỗi
 Split cụm không phân giải nổi hiệu ứng ràng buộc ở đây, nên dùng **scaffold split**, khớp
 với Mục 7 gốc. Ghi lại như kết quả, không viết vòng.
 
-## 2. Kết quả
+## 2. Kết quả, 60 seed
+
+### Ràng buộc so với đơn nhiệm — vững ở mọi mức nhãn
 
 | % nhãn | n | đơn nhiệm | ràng buộc | **Δ** | KTC 95% | thắng | p |
 |---|---|---|---|---|---|---|---|
-| 25% | 79 | 0,0923 | 0,2405 | **+0,1482** | [+0,092, +0,208] | 20/25 | **<0,0001** |
-| 50% | 164 | 0,2204 | 0,2938 | **+0,0734** | [+0,032, +0,114] | 18/25 | **0,0028** |
-| 75% | 242 | 0,2248 | 0,3204 | **+0,0956** | [+0,064, +0,126] | 23/25 | **<0,0001** |
-| 100% | 325 | 0,2739 | 0,3790 | **+0,1051** | [+0,068, +0,144] | 23/25 | **<0,0001** |
+| 25% | 81 | 0,0923 | 0,2313 | **+0,1390** | [+0,109, +0,171] | 51/60 | **<0,0001** |
+| 50% | 161 | — | — | **+0,0994** | [+0,071, +0,129] | 48/60 | **<0,0001** |
+| 75% | 243 | — | — | **+0,0957** | [+0,076, +0,116] | 53/60 | **<0,0001** |
+| 100% | 325 | 0,2739 | 0,3848 | **+0,1109** | [+0,087, +0,135] | 56/60 | **<0,0001** |
 
-**Ràng buộc giúp ở MỌI mức nhãn, kể cả 100%** — nơi trên dữ liệu TDC gộp loài nó **có hại**
-(−0,0175). Và mức giúp lớn gấp 2–3 lần.
+Gần như không đổi so với 25 seed. **Ràng buộc giúp ở mọi mức nhãn, kể cả 100%** — nơi
+trên tập TDC gộp loài nó có hại (−0,0175). Hợp lý: 325 phân tử huấn luyện vẫn là khan
+hiếm.
 
-Hợp lý: ở 100% nhãn đây vẫn chỉ là **325 phân tử huấn luyện**, trong khi tập gộp có 970.
-Theo đúng câu chuyện giảm nhãn, 325 nhãn tế bào gan người **vẫn là khan hiếm**.
+### Học coupling so với cố định coupling
 
-## 3. ⚠ Nhưng ablation đảo chiều — và đây mới là điều quan trọng
-
-| % nhãn | identity − đơn nhiệm | p | **Deming − identity** | thắng | p |
+| % nhãn | **Δ** | KTC 95% | thắng | p | n cặp khớp coupling |
 |---|---|---|---|---|---|
-| 25% | **+0,1391** | 0,0001 | +0,0092 | **4/25** | 0,080 |
-| 50% | **+0,0555** | 0,032 | +0,0179 | 14/25 | 0,114 |
-| 75% | **+0,0778** | 0,0002 | +0,0178 | 15/25 | 0,191 |
-| 100% | **+0,0805** | 0,0028 | +0,0246 | 17/25 | **0,015** |
+| 25% | +0,0060 | [+0,000, +0,013] | **7/60** | 0,062 | **15,9 ± 3,7** |
+| 50% | **+0,0202** | [+0,008, +0,033] | 38/60 | **0,0025** | 30,8 ± 4,6 |
+| 75% | **+0,0161** | [+0,004, +0,029] | 38/60 | **0,032** | 46,0 ± 4,7 |
+| 100% | **+0,0271** | [+0,017, +0,037] | 46/60 | **<0,0001** | 61,0 ± 5,0 |
 
-Trên dữ liệu người thuần, **coupling cố định (identity) cũng giúp gần bằng coupling học
-được**. Lợi thế của việc học co lại còn +0,009 đến +0,025, và **chỉ có ý nghĩa ở 100% nhãn**.
+## 3. ⚠ Cơ chế của hàng 25% — và nó sửa diễn giải ở bản 25 seed
 
-**Lưu ý một mâu thuẫn phải báo cáo:** ở 25% nhãn, trung bình chênh lệch là +0,0092 với KTC
-không chứa 0, **nhưng chỉ thắng 4/25**. Nghĩa là **trung vị âm** — identity thắng ở phần
-lớn seed, còn trung bình bị vài seed có chênh lệch dương rất lớn kéo lên. Ở mức này phải
-báo cáo **kiểm định dấu làm chính**: identity thường tốt hơn.
+Bản trước mình viết rằng ở 25% nhãn "identity thường tốt hơn", vì chỉ thắng 4/25. **Sai.**
 
-## 4. Diễn giải — và nó sửa lại luận điểm của bài
+`fit_coupling` quay về identity khi số cặp dùng được **< 20**. Ở 25% nhãn số cặp là
+**15,9 ± 3,7** (min 7), và **82% số lần rơi xuống dưới ngưỡng đó**.
 
-Trên TDC (gộp loài), "học coupling thắng cố định coupling" rất mạnh (p < 0,0001, 46/60
-ngoài miền). Trên dữ liệu người thuần, nó gần như biến mất.
+> Nghĩa là ở 25% nhãn, trong phần lớn các lần chạy, **arm "Deming" chính là arm
+> "identity"** — hai arm bằng nhau, chênh lệch đúng bằng 0, và quy ước `wins = (Δ > 0)`
+> đếm hoà là không thắng. Tỷ lệ 7/60 **không phải bằng chứng identity tốt hơn**; nó là
+> bằng chứng rằng phép học coupling **phần lớn chưa được thực hiện**.
 
-Giải thích hợp lý nhất, và nó hợp dược học:
+Đây là hiện vật của **quy tắc dự phòng do chính mình đặt ra**, không phải phát hiện về
+cách chọn coupling. Phải nói rõ trong bài.
 
-> Trên tập gộp, coupling phải bắc cầu từ **microsome người** sang **hỗn hợp tế bào gan
-> người–chuột**. Một coupling cố định ở quy đổi sinh lý thuần tuý sẽ **sai hệ thống**,
-> nên việc học nó hấp thụ phần lệch loài và mang lại lợi ích lớn. Trên dữ liệu người
-> thuần, microsome → tế bào gan **cùng loài**, nên quy đổi sinh lý trong sách giáo khoa
-> **vốn đã gần đúng**, và học thêm chỉ còn ít chỗ để cải thiện.
+## 4. Phát biểu đúng, và nó có giá trị thực hành
 
-Nghĩa là: **một phần đáng kể của "lợi ích từ việc học phép hiệu chỉnh" ở Mục 7 là hiện
-vật của việc TDC gộp loài.** Phải nói thẳng điều này.
+Khi có đủ cặp để khớp (từ ~30 trở lên), **học phép hiệu chỉnh thắng cố định nó ở cả ba
+mức còn lại**: +0,020 (p = 0,0025), +0,016 (p = 0,032), +0,027 (p < 0,0001). Độ dốc khớp
+được ổn định quanh **1,04–1,18**, đúng kỳ vọng tỷ lệ thuận.
 
-Luận điểm còn lại, và nó vững hơn:
+> **Ràng buộc IVIVE giúp đáng kể trên dữ liệu người thuần ở mọi mức nhãn (+0,096 đến
+> +0,139, p < 0,0001). Việc học phép hiệu chỉnh thay vì cố định nó thêm được +0,016 đến
+> +0,027, nhưng chỉ khi có đủ khoảng 30 phân tử mang cả hai nhãn để khớp; dưới ngưỡng đó
+> phương pháp tự thoái về hằng số quy đổi sinh lý.**
 
-> **Ràng buộc IVIVE — truyền thông tin từ assay microsome sang assay tế bào gan qua quy
-> đổi sinh lý — giúp đáng kể và ở mọi mức nhãn trên dữ liệu người thuần (+0,07 đến +0,15,
-> p ≤ 0,003).** Việc hệ số hiệu chỉnh được học hay cố định thì ít quan trọng khi hai assay
-> cùng loài; nó trở nên quan trọng khi tập dữ liệu trộn nguồn không đồng nhất.
+Đây là một hướng dẫn thực hành đo được, không chỉ là một con số.
 
-Phát biểu này **mạnh hơn** cái cũ về mặt dược học, vì nó là lời khẳng định cho chính phép
-IVIVE chứ không chỉ cho một thủ thuật khớp đường thẳng.
+### Và nó sửa lại luận điểm của Mục 7
+
+Trên TDC gộp loài, overlap là 682 phân tử (bị thổi lên bởi phần chuột), nên coupling
+**luôn khớp được**, và khoảng cách học–cố định lớn vì việc gộp loài làm hằng số cố định
+**sai hệ thống**. Trên người thuần, cùng loài, quy đổi sách giáo khoa vốn đã gần đúng,
+nên học chỉ thêm được một phần nhỏ.
+
+**Một phần đáng kể của "lợi ích từ việc học phép hiệu chỉnh" ở Mục 7 là hiện vật của việc
+TDC gộp loài.** Phải nói thẳng.
 
 ## 5. Giới hạn
 
 1. 408 phân tử, test TB chỉ 82. Mọi hiệu ứng đo trên cỡ nhỏ.
 2. Hiệu năng tuyệt đối thấp hơn hẳn tập gộp (0,27–0,38 so với 0,44–0,49) — đúng như kỳ
    vọng với 408 so với 1 020 phân tử.
-3. Chưa chạy 60 seed. Luận điểm "ràng buộc thắng đơn nhiệm" ở đây rất mạnh (p < 0,0001,
-   23/25) nên ít rủi ro, nhưng ablation thì ở ranh giới và **cần thêm seed**.
+3. Ngưỡng dự phòng 20 cặp là do mình đặt, chưa tinh chỉnh. Hàng 25% nhãn đo tác dụng của
+   chính ngưỡng đó chứ không đo cách chọn coupling (§3).
 4. Chưa kiểm ngoài miền trên dữ liệu người thuần — split cụm không dùng được ở cỡ này (§1).
 
 ## Việc tiếp theo
 
-- [ ] Chạy 60 seed cho ablation người thuần — hiện ở ranh giới.
+- [x] ~~Chạy 60 seed cho ablation người thuần~~ → **đã chạy**, kết quả ở §2–4.
+- [ ] Quét ngưỡng dự phòng (hiện 20 cặp) để tách nó khỏi kết luận ở hàng 25% nhãn.
 - [ ] Viết lại Mục 7 theo phát biểu ở §4.
 - [ ] Xem xét chuyển toàn bộ bài sang dữ liệu người thuần làm kết quả chính, giữ tập TDC
       gộp loài làm minh hoạ cho phần phê bình benchmark.
