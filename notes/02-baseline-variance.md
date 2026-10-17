@@ -1,4 +1,27 @@
-# Finding 02 — Giao thức đánh giá của bảng TDC tự chế ra được mức "cải tiến" lớn hơn mục tiêu của dự án
+# Finding 02 — Phương sai của phép chia, và nó KHÔNG phải phương sai của giao thức bảng xếp hạng
+
+> ## ⚠ ĐÃ SỬA BỞI `notes/12` — ĐỌC TRƯỚC KHI DÙNG SỐ Ở ĐÂY
+>
+> Trang này đo bằng `ADME(...).get_split(method='scaffold', seed=s)`, **chia lại toàn bộ
+> dữ liệu kể cả test set** trên mỗi seed.
+>
+> Giao thức thật của bảng xếp hạng **không** làm vậy: `admet_group` có **test set cố
+> định** (243 phân tử, hash không đổi theo seed), seed chỉ chia lại train/valid (848/122).
+> Đã tự kiểm chứng.
+>
+> Nên mọi phát biểu dạng *"giao thức 5 seed của TDC tự chế ra cải tiến 0,067"* ở dưới
+> **SAI**. Con số 0,045–0,087 là phương sai khi **lấy mẫu lại cả tập test** — một đại
+> lượng khác, và lớn hơn.
+>
+> Koleiev et al. báo SD 0,005–0,016 trên chính năm endpoint này bằng giao thức thật.
+> Chênh 4–8 lần, và chênh đó **được giải thích** bởi việc hai bên đo hai thành phần
+> phương sai khác nhau.
+>
+> Phát biểu đúng, và vẫn là một phát hiện: **độ lệch ± mà bảng công bố chỉ gồm phương sai
+> phân hoạch train/valid và tính ngẫu nhiên của bộ học. Nó không nói gì về việc con số đó
+> sẽ dịch bao nhiêu trên một mẫu phân tử khác.**
+>
+> Số đo bằng giao thức thật ở `results/leaderboard_protocol_summary.csv`.
 
 Ngày đo: 2026-10-17. Scripts: `src/models/baseline.py`, `src/eval/protocol_variance.py`.
 Kết quả: `results/baseline_lgbm_25_*.csv`, `results/protocol_variance.csv`.
