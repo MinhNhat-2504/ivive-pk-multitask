@@ -80,7 +80,37 @@ split khác — `get_split()` ngẫu nhiên sẽ rải 193 **bản ghi** trùng 
 `Clearance_Hepatocyte_AZ` (1 213 bản ghi / 1 020 phân tử) sang cả hai phía, điều mà phép
 đo của mình không thấy vì mình gộp trùng trước.
 
-**Đã hỏi lại, agent đang chạy tiếp.** Không viết gì về con số 4,95% cho tới khi giải quyết
+**✅ ĐÃ GIẢI QUYẾT — mình không có bug.** Họ audit **split khác**: mã nguồn
+`benchaudit/utils/loader.py` gọi `ADME(name).get_split(method=...)`, không bao giờ dùng
+`admet_group`. Kích thước chứng minh: họ 1 109 hàng chia 755/119/235 (ba phần 70/10/20);
+`admet_group` cho 1 020 **phân tử duy nhất** chia 817/203. `admet_group` ship bản **đã gộp
+trùng ở mức phân tử** — đúng lý do mình ra 0 ở mọi mức chặt.
+
+Và 4,95% = 55/1 109 trên **toàn dataset**, tương đương **23,4% của tập test** của họ. Cơ
+chế: bản ghi trùng của TDC bị rải sang các split, rồi họ gộp trùng **trong từng split**
+nên cặp xuyên split sống sót. Nếu trích con số này **phải kèm mẫu số**.
+
+Cả hai đều đúng, về hai split khác nhau — và split của họ là cái phần lớn người dùng TDC
+sẽ gặp nếu gọi `get_split()`.
+
+### ⭐ Và bảng audit đã công bố của họ chứa sẵn đống dồn của mình, không ai nhận ra
+
+File `audit_summary.csv` của họ có histogram giá trị của tập test:
+
+| Endpoint | tại 3,0 | tại 150,0 | **tổng trên ngưỡng** |
+|---|---|---|---|
+| `Clearance_Hepatocyte_AZ` | 38 (16,2%) | 30 (12,8%) | **28,9%** |
+| `Clearance_Microsome_AZ` | 62 (28,2%) | 16 (7,3%) | **35,5%** |
+
+Giá trị phổ biến kế tiếp chỉ xuất hiện 3–6 lần. Ba endpoint kia không có gì tương tự
+(đỉnh cao nhất 4,5%).
+
+**28,9% và 35,5% kẹp đúng dải 27–34% mình đo — từ một pipeline độc lập, trên dữ liệu
+người khác công bố.** Đây là kiểm chứng bên thứ ba cho cả tỷ lệ lẫn hai giá trị ngưỡng.
+
+Và một điểm mỉa mai đáng một câu trong bài: nhóm `label_conflict` của họ ở hepatocyte có
+**14,3% nằm đúng tại 150,0** — tức một phần cái họ xếp là "xung đột nhãn" thực ra là hai
+bản ghi cùng ghim ở trần assay. **Kiểm duyệt bị đọc nhầm thành bất đồng phép đo.** Không viết gì về con số 4,95% cho tới khi giải quyết
 xong — nếu nó cùng split thì **mình có bug**. Điều đã biết: tiêu chí của họ là *"cross-split
 contamination (train/valid→test overlap of cleaned SMILES)"*, tức trùng chính xác chứ
 không phải lân cận — nên mâu thuẫn là thật, không phải khác định nghĩa.

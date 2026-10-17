@@ -32,6 +32,33 @@ TDC `Clearance_Hepatocyte_AZ` có **1 213 bản ghi / 1 020 phân tử**. Còn 4
 Hai endpoint kia **sạch** — khớp chính xác một assay người duy nhất:
 `cl_mic` = 1 102 = `CHEMBL3301370`; `ppbr` = 1 614 = `CHEMBL3301365`.
 
+## 1b. Việc gộp xảy ra ở TDC, không phải thượng nguồn — đã truy đủ
+
+**Nguồn thượng nguồn sạch và ghi đúng loài:**
+
+| Nguồn | Mô tả | n |
+|---|---|---|
+| PubChem **AID 1159396** | *"Intrinsic clearance measured in **human** hepatocytes"* | **408** |
+| PubChem AID 1159394 | *"...**human** liver microsomes"* | 1 102 |
+| ChEMBL `CHEMBL3301372` | `assay_organism: Homo sapiens` | 408 |
+| ChEMBL `CHEMBL3301371` | `assay_organism: **Rattus norvegicus**` | 837 |
+
+**Tài liệu của TDC không khai báo việc gộp loài.** Nguyên văn từ tdcommons.ai:
+
+> *"It contains clearance measures from **two experiments types, hepatocyte and
+> microsomes**. As many studies have shown various clearance outcomes given these two
+> different types, **we separate them**."*
+> *"Dataset Statistics: 1,102/1,020 drugs for microsome/hepatocyte clearance."*
+
+Tách theo **loại thí nghiệm**, **không nhắc tới loài**. Và trích dẫn biện minh là Di et
+al. 2012, *"comparing intrinsic clearance values between **human** liver microsomes and
+hepatocytes"* — một bài so người với người, dùng để biện minh cho một bộ dữ liệu mà hai
+phần ba là chuột.
+
+→ Quy trách nhiệm được: **ChEMBL và PubChem ghi đúng; TDC trộn hai assay khi curate và
+mô tả phép tách chỉ theo loại thí nghiệm.** Mọi mô hình huấn luyện trên TDC kế thừa điều
+này mà không có cách nào biết.
+
 ## 2. ⚠ Hệ quả: trần nhiễu ở `notes/03` và `notes/04` đo nhầm đại lượng
 
 Ở `notes/03` mình tìm thấy **193 "nhóm đo lặp"** trong `cl_hep` và dùng độ tản trong nhóm
@@ -107,7 +134,7 @@ là **chênh 2 lần trong fu**.
 - [ ] Kiểm xem việc gộp loài có ảnh hưởng mọi kết quả mô hình không — baseline, Tobit,
       giảm nhãn, OOD đều huấn luyện trên tập lẫn hai loài này.
 - [ ] Xử lý kiểm duyệt trần của `ppbr` trong ràng buộc IVIVE.
-- [ ] Kiểm tra TDC có ghi chú việc gộp này ở đâu không trước khi gọi nó là lỗi không khai báo.
+- [x] ~~Kiểm tra TDC có ghi chú việc gộp này không~~ → **không có**, xem §1b.
 
 ## 6. Hệ quả cho toàn bộ dự án — nói thẳng
 
