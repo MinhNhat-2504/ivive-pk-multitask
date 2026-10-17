@@ -206,14 +206,39 @@ def extract_half_life(text: str) -> list[Extraction]:
         if not re.search(r"half[- ]?life|t\s*1\s*/\s*2|t½|terminal elimination", lowered):
             continue
         # Half-life of a metabolite or of an effect is not the drug's t1/2.
-        if re.search(r"half[- ]?life of (?:the )?(?:metabolite|m\d|effect)", lowered):
+        # The phrasing varies -- "of the metabolite", "of these metabolites",
+        # "of its active metabolite" -- and a hand-check caught oliceridine
+        # taking 44 hours from "the half-life of these metabolites ... is much
+        # longer than that of unchanged oliceridine (1.3-3 hours)". A sentence
+        # that contrasts the two is skipped rather than guessed at.
+        if re.search(r"half[- ]?life of (?:the |these |its |their )?(?:active |major )?(?:metabolite|m\d|effect)", lowered):
             continue
+
+        # Same tabular guard as protein binding, and for the same reason: label
+        # PK sections flatten tables into running text, and a table row can
+        # mention half-life in one cell and carry an unrelated duration in
+        # another. Hand-checking 30 extractions found three of five errors this
+        # way -- an AUC 0-24h window, a bioequivalence table, a metabolite
+        # table -- so the duration has to sit near the half-life mention.
+        looks_tabular = len(re.findall(NUMBER, sentence)) > 6 or len(sentence) > 300
+        anchors = [m.start() for m in re.finditer(r"half[- ]?life|t\s*1\s*/\s*2|t½", lowered)]
 
         pattern = rf"({NUMBER})\s*(?:(?:to|-|–|and)\s*({NUMBER})\s*)?(hours?|hrs?|h|days?|minutes?|min)\b"
         for match in re.finditer(pattern, sentence, re.IGNORECASE):
             low = _to_float(match.group(1))
             high = _to_float(match.group(2)) if match.group(2) else None
             if low is None:
+                continue
+
+            reach = 70 if looks_tabular else 160
+            if anchors and not any(abs(a - match.start()) < reach for a in anchors):
+                continue
+
+            # "21 +/- 11 hours" is a mean and its standard deviation, not a
+            # duration of 11 hours. The symbol survives the label's encoding
+            # inconsistently, so both the sign and its mojibake are matched.
+            preceding = sentence[max(0, match.start() - 12) : match.start()]
+            if re.search(r"(±|\+/-|\?)\s*$", preceding):
                 continue
             unit_word = match.group(3).lower().rstrip("s")
             factor = scale.get(unit_word, scale.get(unit_word[:3]))

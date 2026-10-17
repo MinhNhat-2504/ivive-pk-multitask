@@ -1,0 +1,10 @@
+ingredient,verdict,corrected_value,reason
+letermovir,reject,,"AUC/Cmax bioequivalence table; no half-life value in the captured sentence"
+pexidartinib,reject,,"""Time to steady state ... Approximately 7 days"" is time to steady state, not half-life"
+triclabendazole,correct,8.0,"sentence lists 8, 14 and 18 hours for parent, sulfoxide and sulfone; the extractor averaged the first two"
+voxelotor,correct,38.7,"took a 0-24h AUC window; the table states Half-life (hours) 38.7"
+lotilaner,correct,264.0,"12 is the dosing interval; the same sentence gives the effective half-life as 264 hours"
+ensifentrine,correct,11.6,"144 came from ""for 6 days""; the sentence gives 10.6 to 12.6 hours"
+daprodustat,correct,2.5,"""approximately 1 hour to 4 hours"" - the unit between the bounds hid the range, so only the lower bound was taken"
+revefenacin,suspect,,"sentence covers revefenacin and its active metabolite together; cannot attribute 46 hours to the parent"
+oliceridine,suspect,,"4.3 hours is the value in moderate hepatic impairment, not the healthy-subject half-life"

@@ -1,0 +1,21 @@
+ingredient,verdict,corrected_value,reason
+secnidazole,reject,,sentence is about admixing with pudding and yogurt; no binding value
+letermovir,reject,,"AUC: 99.63% [84.27% - 117.80%] is a bioequivalence ratio"
+tecovirimat,reject,,food-effect row of a PK table
+omadacycline,reject,,PK parameter table; no binding value in reach
+pexidartinib,reject,,food-effect sentence (Cmax increased by 56%)
+triheptanoin,reject,,PK parameter table
+tapinarof,reject,,Cmax/AUC exposure table
+trospium,reject,,combination-product PK table (COBENFY); value not attributable
+sofpironium,reject,,mean plasma exposure table
+revumenib,reject,,dosage footnote table
+gepotidacin,reject,,exposure table (Cmax/AUC)
+maribavir,correct,98.0,24.9 was Vss in L; the true value 98.0 follows "% bound to human plasma proteins" in the same flattened table row
+olutasidenib,correct,93.0,28.1 was the CV% of the volume of distribution; the true value 93 appears in the next sentence
+fluoroestradiol f-18,reject,,F-18 PET imaging agent; not a drug-like small molecule for PK modelling
+cefiderocol,suspect,,value sits in a Cmax/AUC table; quote truncated before any binding statement
+ripretinib,suspect,,table-sourced; 99.8 is plausible but not verifiable from the captured sentence
+nirogacestat,suspect,,table-sourced; 99.6 plausible but not verifiable from the captured sentence
+brensocatib,suspect,,quote truncated mid-sentence before the binding clause
+ziftomenib,suspect,,dosage/exposure table; binding not visible in the captured sentence
+ensitrelvir,suspect,,captured sentence shows 97.7% for serum protein binding but the extracted value is 98.2
