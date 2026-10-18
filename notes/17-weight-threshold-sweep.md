@@ -73,9 +73,34 @@ giữa có khớp và không khớp. Đã nêu trong bài.
 **Không tham số nào trong bốn cái chi phối kết quả.** Kết luận của bài không phải hiện vật
 tinh chỉnh — và điều đó giờ **đo được**, không phải khẳng định.
 
-## 4. Giới hạn
+## 4. Quét liên hợp — loại trừ tương tác
+
+Quét từng tham số một không thấy được tương tác: một tham số có thể vô hại khi đứng riêng
+mà vẫn quan trọng khi kết hợp. Lưới đầy đủ bốn chiều là 540 cấu hình, nên **lấy mẫu ngẫu
+nhiên 24 cấu hình** từ không gian đó (gồm cả mặc định), 25 seed, cùng baseline.
+Script: `src/experiments/joint_sweep.py`.
+
+| | 25% nhãn | 100% nhãn |
+|---|---|---|
+| delta nhỏ nhất | **+0,1263** | **+0,0667** |
+| trung vị | +0,1427 | +0,0983 |
+| lớn nhất | +0,1574 | +0,1129 |
+| biên độ | 0,031 | 0,046 |
+| **cấu hình có delta ≤ 0** | **0/24** | **0/24** |
+| **cấu hình thắng < 13/25 seed** | **0/24** | **0/24** |
+
+> **Không một cấu hình nào trong 24 mẫu cho hiệu ứng âm hoặc thua đa số.** Cấu hình kém
+> nhất ở 25% nhãn vẫn cho +0,126, ở 100% nhãn vẫn cho +0,067.
+
+Biên độ 0,031 và 0,046 **cùng cỡ** với quét từng tham số (0,034), nên **không có tương
+tác nào nổi lên**. Kết luận của quét một chiều giữ nguyên khi quét liên hợp.
+
+Một mẫu hình nhỏ: ba cấu hình kém nhất ở 100% nhãn đều có `pseudo_weight` cao (1,0, 1,0,
+0,8), khớp với `notes/09` rằng trọng số pseudo-target và số vòng lặp cao thì hại.
+
+## 5. Giới hạn
 
 1. Quét trên 25 seed, hai mức nhãn (25% và 100%). Chưa quét ở 50/75%.
-2. Quét từng tham số một quanh mặc định, không quét lưới đầy đủ — tương tác giữa các tham
-   số chưa loại trừ.
+2. Quét liên hợp lấy mẫu 24/540 cấu hình. Phủ tương tác tốt hơn lưới ở cùng ngân sách,
+   nhưng không vét cạn.
 3. Siêu tham số LightGBM giữ cố định suốt, chung cho mọi arm.
