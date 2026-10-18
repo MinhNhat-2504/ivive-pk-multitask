@@ -40,12 +40,19 @@ from src.models.ivive import HEPATOCYTE_SCALE, MICROSOME_SCALE
 
 log = logging.getLogger(__name__)
 
-#: Weight standing for "this value is a measurement". Not zero, because a label
-#: is itself noisy -- `notes/04` puts the within-molecule spread at ~2.2-fold.
+#: Default weight standing for "this value is a measurement". Not zero, because
+#: a label is itself noisy. The original justification quoted a within-molecule
+#: spread, which `notes/15` retracted; the value is kept as a default and swept
+#: in `src/experiments/weight_sweep.py` rather than defended from a number that
+#: no longer exists.
 LABEL_WEIGHT = 0.05
 #: Weight for a value the model merely predicted, so the projection moves it far
 #: more readily than it moves a measurement.
 PREDICTION_WEIGHT = 1.0
+#: Below this many usable paired molecules the coupling is not fitted and the
+#: model falls back to pure physiological scaling. `notes/16` found this rule,
+#: not the choice of coupling, is what the 25%-label ablation row measures.
+MIN_COUPLING_PAIRS = 20
 
 
 @dataclass
@@ -92,6 +99,7 @@ def fit_coupling(
     clint_mic: np.ndarray,
     censored: np.ndarray,
     mode: str = "deming",
+    min_pairs: int = MIN_COUPLING_PAIRS,
 ) -> AffineCoupling:
     """Fit the between-system correction on molecules measured in both systems.
 
@@ -116,8 +124,9 @@ def fit_coupling(
             residual_sd=float(residuals.std(ddof=1)) if usable.sum() > 1 else np.nan,
         )
 
-    if usable.sum() < 20:
-        log.warning("only %d usable pairs; falling back to identity", int(usable.sum()))
+    if usable.sum() < min_pairs:
+        log.warning("only %d usable pairs (< %d); falling back to identity",
+                    int(usable.sum()), min_pairs)
         return AffineCoupling(n_fitted=int(usable.sum()))
 
     if mode == "ols":
@@ -169,12 +178,18 @@ class ConstrainedMultitask:
         n_rounds: int = 2,
         pseudo_weight: float = 0.3,
         coupling_mode: str = "deming",
+        label_weight: float = LABEL_WEIGHT,
+        prediction_weight: float = PREDICTION_WEIGHT,
+        min_coupling_pairs: int = MIN_COUPLING_PAIRS,
         random_state: int = 0,
         **lgbm_params,
     ):
         self.n_rounds = n_rounds
         self.pseudo_weight = pseudo_weight
         self.coupling_mode = coupling_mode
+        self.label_weight = label_weight
+        self.prediction_weight = prediction_weight
+        self.min_coupling_pairs = min_coupling_pairs
         self.random_state = random_state
         self.lgbm_params = lgbm_params
         self.heads_: dict[str, LGBMRegressor] = {}
@@ -196,6 +211,7 @@ class ConstrainedMultitask:
             y_mic[both],
             (censored_hep | censored_mic)[both],
             mode=self.coupling_mode,
+            min_pairs=self.min_coupling_pairs,
         )
         log.info(
             "coupling: log10 CLmic = %.3f + %.3f * log10 CLhep  (n=%d, residual sd %.3f)",
@@ -226,8 +242,8 @@ class ConstrainedMultitask:
             pred_hep = self.heads_["hep"].predict(x)
             pred_mic = self.heads_["mic"].predict(x)
             # A measured head is trusted; a predicted one is not.
-            w_hep = np.where(has_hep, LABEL_WEIGHT, PREDICTION_WEIGHT)
-            w_mic = np.where(has_mic, LABEL_WEIGHT, PREDICTION_WEIGHT)
+            w_hep = np.where(has_hep, self.label_weight, self.prediction_weight)
+            w_mic = np.where(has_mic, self.label_weight, self.prediction_weight)
             proj_hep, proj_mic = project_pair(
                 np.where(has_hep, log_hep, pred_hep),
                 np.where(has_mic, log_mic, pred_mic),

@@ -196,9 +196,26 @@ xác định, trạng thái kiểm duyệt và câu trích nguồn.
 `ppbr`** và **~118 cho `half_life`** — `ppbr` khớp dự kiến, `half_life` thấp hơn dải
 140–165 đã nêu.
 
+## B6. Bộ cuối cùng (2026-10-18)
+
+| | ứng viên | kiểm tay | **rời PKSmart** |
+|---|---|---|---|
+| `ppb` | 164 | 146 | **129** |
+| `half_life` | 91 | 87 | **76** |
+
+Khử trùng với PKSmart loại **26/255** ứng viên. Khớp theo cấu trúc (sau khi trung hoà
+điện tích — `External_test_315.csv` lưu SMILES đã proton hoá) **và** theo tên với
+`FDA_v2.csv`.
+
+Trong 129 giá trị `ppb`: **28 bị kiểm duyệt** (25 phải, 3 trái), thêm 29 ghi "xấp xỉ".
+
+Nhiễm `/F` của PKSmart, tính trực tiếp từ file họ phát hành: **7/40 VDss > 10 L/kg
+(17,5%)**, cao nhất mobocertinib 58,5; **5/38 CL vượt lưu lượng máu gan (13,2%)**. Toàn
+bộ thuộc phần `source=FDA`; chín dòng Lombardo cao nhất chỉ 7,4 L/kg.
+
 ## Việc tiếp theo
 
-- [ ] **Bước 5 — trích xuất ngữ nghĩa trên 194 mục PK.** Việc lớn nhất còn lại.
-- [ ] Khử trùng với `FDA_v2.csv` / `External_test_315.csv` của PKSmart.
+- [x] ~~Bước 5 — trích xuất~~ → xong, `notes/11`.
+- [x] ~~Khử trùng với PKSmart~~ → xong, §B6.
 - [ ] Đọc toàn văn Koleiev et al. trước khi trích dẫn.
 - [ ] Kiểm lại 42 dòng của PKSmart, ghi lại số nào bị `/F` nhiễm.
