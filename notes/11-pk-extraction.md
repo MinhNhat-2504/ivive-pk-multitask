@@ -94,6 +94,35 @@ Không được báo cáo kết quả external trong bài khi chưa làm bước
 Đây cũng chính là chỗ công trình liên quan đã sai: PKSmart công bố `Vz/F` chia 70 kg dán
 nhãn VDss (`notes/05 §3`) — tức bỏ qua đúng bước kiểm này.
 
+## 4b. Vòng kiểm thứ hai trên `half_life` (2026-10-19)
+
+Bộ `half_life` cuối (76 giá trị, đã kiểm tay và rời PKSmart) được đọc lại một lượt nữa,
+lần này nhắm vào hai chỗ cơ học dễ sai nhất.
+
+**Quy đổi đơn vị — 9 trường hợp, đúng hết:**
+
+| Chất | Nhãn ghi | Lưu |
+|---|---|---|
+| prucalopride | "approximately 1 day" | 24,0 |
+| apalutamide | "approximately 3 days" | 72,0 |
+| lazertinib | "3,7 days" | 88,8 |
+| tafenoquine | "approximately 15 days" | 360,0 |
+| moxidectin | "23,3 days (559 hours)" | 559,2 |
+| landiolol | "4,5 minutes" | 0,075 |
+| lotilaner, ensifentrine, cannabidiol | *(đã sửa tay vòng 1)* | đúng |
+
+**Trung điểm khoảng — đối chiếu bằng máy trên 29 câu có khoảng:** 22 khớp; 7 bị gắn cờ,
+và **cả 7 đều là dương tính giả của chính bộ kiểm tra**.
+
+Cả 7 theo cùng một mẫu hình: nhãn cho **cả ước lượng điểm lẫn khoảng** —
+*"median half-life is approximately **20 hours** (7,5 to 24,2 hours)"* — và bộ trích xuất
+lấy **ước lượng điểm**, trong khi bộ kiểm tra lấy trung điểm khoảng. Bộ trích xuất đúng.
+Hai trường hợp còn lại là regex của bộ kiểm tra bắt chéo câu (midostaurin) hoặc bắt cửa
+sổ "AUC 0-24h" (voxelotor, vốn đã là giá trị mình sửa tay).
+
+> **Vòng kiểm thứ hai không tìm thấy lỗi mới nào trong 76 giá trị.** Quy tắc "ưu tiên ước
+> lượng điểm nêu rõ hơn trung điểm khoảng" được xác nhận là hành vi đúng, không phải may.
+
 ## 5. Giới hạn
 
 1. Trích xuất dựa trên **quy tắc có nhận thức ngữ cảnh**, không phải mô hình ngôn ngữ.
