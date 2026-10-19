@@ -26,6 +26,7 @@ from src.experiments.external_validation import load_external
 from src.features.descriptors import featurise
 from src.figures.make_figures import BLUE, FIGURE_ROOT, GRID, INK, MUTED, VERMILLION
 from src.models.baseline import LGBM_PARAMS
+from src.models.ivive import ASSAY_FU_FLOOR
 
 #: The assay's declared working range, from the deposition's own description.
 PPB_FLOOR, PPB_CEILING = 10.0, 99.95
@@ -82,8 +83,8 @@ def main() -> None:
 
     # --- right: what that costs in unbound fraction ---------------------------
     high = truth >= 99.0
-    fu_true = (100.0 - truth[high]) / 100.0
-    fu_pred = (100.0 - np.clip(pred[high], None, 99.99)) / 100.0
+    fu_true = np.clip((100.0 - truth[high]) / 100.0, ASSAY_FU_FLOOR, 1.0)
+    fu_pred = np.clip((100.0 - pred[high]) / 100.0, ASSAY_FU_FLOOR, 1.0)
 
     right.scatter(fu_true, fu_pred, s=16, color=VERMILLION, alpha=0.7,
                   linewidths=0, zorder=3)

@@ -46,6 +46,7 @@ from src.data.load_tdc import DATA_ROOT, canonical_smiles
 from src.experiments.external_validation import load_external
 from src.features.descriptors import featurise
 from src.models.baseline import LGBM_PARAMS, RESULTS_ROOT
+from src.models.ivive import ASSAY_FU_FLOOR
 
 log = logging.getLogger(__name__)
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -81,8 +82,11 @@ def compression_metrics(truth: np.ndarray, pred: np.ndarray) -> dict:
 
     high = truth >= 99.0
     low = truth < 50.0
-    fu_true = (100.0 - truth[high]) / 100.0
-    fu_pred = (100.0 - np.clip(pred[high], None, 99.99)) / 100.0
+    # Clipped at the assay's declared ceiling rather than at an arbitrary value
+    # just below 100. See `ASSAY_FU_FLOOR`: a tighter clip inflates the fold
+    # error of any model that saturates, by a factor the clip chooses.
+    fu_true = np.clip((100.0 - truth[high]) / 100.0, ASSAY_FU_FLOOR, 1.0)
+    fu_pred = np.clip((100.0 - pred[high]) / 100.0, ASSAY_FU_FLOOR, 1.0)
     ratio = fu_pred / fu_true
 
     # Two statistics, because they answer different questions and conflating
@@ -101,6 +105,11 @@ def compression_metrics(truth: np.ndarray, pred: np.ndarray) -> dict:
         "fu_overprediction_median": float(np.median(ratio)),
         "fu_fold_error_median": float(np.median(np.maximum(ratio, 1.0 / ratio))),
         "n_overpredicted": int((ratio > 1).sum()),
+        # How many highly bound compounds the model pushes to or past the
+        # assay's ceiling. This is the saturating end of the compression, and
+        # it is what makes a model's fold error sensitive to where fu is
+        # floored, so it belongs beside the fold error rather than behind it.
+        "n_at_assay_ceiling": int((pred[high] >= 100.0 * (1.0 - ASSAY_FU_FLOOR)).sum()),
         "n_above_99": int(high.sum()),
     }
 
@@ -146,7 +155,8 @@ def main() -> None:
     print(
         summary[["model", "spearman", "pred_range", "bias_below_50",
                  "bias_above_99", "fu_overprediction_median",
-                 "fu_fold_error_median", "n_overpredicted"]]
+                 "fu_fold_error_median", "n_overpredicted",
+                 "n_at_assay_ceiling"]]
         .round(3).to_string(index=False)
     )
     print(f"\nobserved range: {y_ext.max() - y_ext.min():.1f} percentage points")

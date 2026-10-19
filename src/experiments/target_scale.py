@@ -39,14 +39,14 @@ from src.data.load_tdc import DATA_ROOT, canonical_smiles
 from src.experiments.external_validation import load_external
 from src.features.descriptors import featurise
 from src.models.baseline import LGBM_PARAMS, RESULTS_ROOT
+from src.models.ivive import ASSAY_FU_FLOOR
 
 log = logging.getLogger(__name__)
 
-#: Floor on fu. The assay's declared ceiling is 99.95% bound, which is an fu of
-#: exactly 5e-4, so this floor represents every label without clipping any.
-#: Paper A used 1e-3, which is more conservative; the difference is noted where
-#: the numbers are compared.
-FU_FLOOR = 5e-4
+#: Floor on fu, defined once in `src/models/ivive.py`: the assay's declared
+#: ceiling of 99.95% bound is an fu of exactly 5e-4, so this represents every
+#: label without clipping any.
+FU_FLOOR = ASSAY_FU_FLOOR
 SEEDS = list(range(1, 26))
 #: Where the IVIVE consequence is concentrated, and the bin paper A reports.
 HIGH_BINDING = 99.0

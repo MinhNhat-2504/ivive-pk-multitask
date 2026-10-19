@@ -34,6 +34,15 @@ HEPATOCYTE_SCALE = HEPATOCELLULARITY * LIVER_WEIGHT / 1000.0
 #: uL/min/mg protein -> mL/min/kg body weight
 MICROSOME_SCALE = MICROSOMAL_PROTEIN * LIVER_WEIGHT / 1000.0
 
+#: The smallest unbound fraction the binding assay can express. Its declared
+#: range stops at 99.95% bound, so a prediction beyond that is clipped here
+#: rather than at some arbitrary value: anything further is outside what the
+#: measurement could have reported. Using a tighter clip inflates fold errors
+#: for models that saturate -- clipping at 99.99% instead turns a ridge model's
+#: median fold error from 20 into 30 -- and the inflation is a property of the
+#: clip, not of the model.
+ASSAY_FU_FLOOR = 5e-4
+
 LN2 = float(np.log(2.0))
 
 

@@ -130,17 +130,21 @@ def check_numbers_paper_c(text: str) -> list[str]:
     if compression.exists():
         table = pd.read_csv(compression).set_index("model")
         for model, fold, over in (
-            ("ridge (linear)", "30.0", "8.2"),
+            ("ridge (linear)", "20.0", "8.2"),
             ("SVR (RBF kernel)", "11.2", "11.2"),
             ("k-NN (k=5)", "17.9", "17.9"),
             ("random forest", "10.1", "10.1"),
-            ("gradient boosting", "8.8", "8.3"),
-            ("neural network", "36.3", "26.5"),
+            ("gradient boosting", "8.3", "8.3"),
+            ("neural network", "26.5", "26.5"),
         ):
             require(f"{model} fu fold error",
                     round(float(table.loc[model, "fu_fold_error_median"]), 1), fold)
             require(f"{model} fu over-estimate",
                     round(float(table.loc[model, "fu_overprediction_median"]), 1), over)
+        for model, spelling in (("ridge (linear)", "| **14** |"),
+                                ("neural network", "| **6**  |")):
+            require(f"{model} predictions at the assay ceiling",
+                    int(table.loc[model, "n_at_assay_ceiling"]), spelling)
         for model, spelling in (("gradient boosting", "35 / 37"),
                                 ("ridge (linear)", "23 / 37"),
                                 ("neural network", "31 / 37")):
