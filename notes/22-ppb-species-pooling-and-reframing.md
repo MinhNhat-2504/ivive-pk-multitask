@@ -143,7 +143,34 @@ dự đoán sai.
 (Lần thứ ba trong dự án tôi dự đoán sai về một đánh đổi. notes/09 Tobit, notes/21
 thang, và đây. Ba lần đều theo chiều "tôi tưởng hai thứ liên quan hơn thực tế".)
 
-## 5. Việc tiếp theo
+## 5. Bảng xếp hạng chính thức, và con số đáng giá nhất
+
+Lấy được bảng thật tại `tdcommons.ai/benchmark/admet_group/08ppbr/`. Trang ghi
+"1,797 compounds" — xác nhận độc lập cho mục 2 — và mô tả endpoint chỉ bằng
+"plasma protein binding rate (AstraZeneca)", không một chữ về loài.
+
+Chạy đúng giao thức chính thức (huấn luyện trên phân vùng train, 5 seed của
+group, chấm bằng `group.evaluate`):
+
+| Thang | MAE, 5 seed chính thức | Sẽ đứng hạng |
+|---|---|---|
+| `percent` | 8,009 ± 0,181 | **8** (giữa DeepMol 7,990 và ADMETrix 8,200) |
+| `log_fu` | 7,698 ± 0,180 | 4 |
+| `logit` | **7,553 ± 0,202** | **3** (giữa MapLight+GNN 7,526 và MapLight 7,660) |
+
+**Một dòng đổi thang đưa cùng một LightGBM không tinh chỉnh từ hạng 8 lên hạng
+3.** Không vượt đầu bảng (Gradient Boost, 7,440 ± 0,024) nhưng thu hẹp phần lớn
+khoảng cách mà không tinh chỉnh gì.
+
+Và đặt cạnh sàn ở mục 3: mười hạng đầu trải từ 7,440 đến 8,680, tức **1,24
+điểm — nhỏ hơn sàn 1,964 điểm** không thể bỏ. Nửa bảng xếp hạng đang được sắp
+thứ tự trong một dải hẹp hơn phần chỉ số đo dữ liệu tự mâu thuẫn với chính nó.
+
+Lưu ý giao thức: số tôi báo trước đó (`percent` 7,812, `logit` 7,433) huấn luyện
+trên toàn `train_val`, **không phải** giao thức chính thức. Hai bộ số đều hợp lệ
+nhưng chỉ bộ chính thức so được với entry đã công bố. Bản thảo C phân biệt rõ.
+
+## 6. Việc tiếp theo
 
 - Sửa mệnh đề 1614 trong paper A và thêm phát hiện gộp năm loài PPB. Paper A
   đang chờ nộp nên việc này ưu tiên cao nhất.

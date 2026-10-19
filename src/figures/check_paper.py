@@ -12,12 +12,13 @@ nothing about whether the prose is right.
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
 
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[2]
-PAPER = ROOT / "paper" / "paper_A_benchmark_defects.md"
+DEFAULT_PAPER = ROOT / "paper" / "paper_A_benchmark_defects.md"
 SI = ROOT / "paper" / "paper_A_supporting_information.md"
 FIGURES = ROOT / "paper" / "figures"
 EXTERNAL = ROOT / "data" / "external"
@@ -118,7 +119,12 @@ def check_numbers(text: str) -> list[str]:
 
 
 def check_cross_references(text: str) -> list[str]:
-    """Every 'Section N.M' must point at a heading that exists."""
+    """Every 'Section N.M' must point at a heading that exists.
+
+    A section of an external document -- the FDA label's pharmacokinetics
+    section, say -- is written with the section sign, as §12.3, so that this
+    check can stay strict about the spelled-out form.
+    """
     headings = set(re.findall(r"^#{2,3} (\d+(?:\.\d+)?)", text, re.M))
     problems = []
     for reference in sorted(set(re.findall(r"Section (\d+\.\d+)", text))):
@@ -130,7 +136,7 @@ def check_cross_references(text: str) -> list[str]:
 def check_figures(text: str) -> list[str]:
     problems = []
     for path in re.findall(r"!\[[^\]]*\]\(([^)]+)\)", text):
-        if not (PAPER.parent / path).exists():
+        if not (ROOT / "paper" / path).exists():
             problems.append(f"figure file missing: {path}")
     for number in sorted(set(re.findall(r"\bFigure (\d+)", text))):
         if f"**Figure {number}." not in text:
@@ -172,16 +178,27 @@ def check_retractions(text: str) -> list[str]:
 
 
 def main() -> None:
-    text = PAPER.read_text(encoding="utf-8")
-    si = SI.read_text(encoding="utf-8")
+    paper = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_PAPER
+    if not paper.is_absolute():
+        paper = ROOT / paper
+    text = paper.read_text(encoding="utf-8")
+    is_paper_a = paper.name == DEFAULT_PAPER.name
 
     sections = {
-        "numbers against source files": check_numbers(text + si),
         "cross-references": check_cross_references(text),
         "figures": check_figures(text),
         "citations": check_citations(text),
-        "retracted figures": check_retractions(text),
     }
+    if is_paper_a:
+        # The quoted figures and the retraction passages are paper A's, and the
+        # supporting information belongs to it.
+        si = SI.read_text(encoding="utf-8")
+        sections = {
+            "numbers against source files": check_numbers(text + si),
+            **sections,
+            "retracted figures": check_retractions(text),
+        }
+    print(f"checking {paper.name}")
 
     total = 0
     for name, problems in sections.items():
