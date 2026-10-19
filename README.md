@@ -17,7 +17,8 @@ Ràng buộc: well-stirred `CL_h = Q_h·f_u·CL_int / (Q_h + f_u·CL_int)`, rồ
 
 ## Trạng thái
 
-Xem `notes/` theo thứ tự, và bản thảo paper ở [paper/draft.md](paper/draft.md).
+Xem `notes/` theo thứ tự. Bản thảo không nằm trong repo; xem mục Giấy phép
+ở cuối.
 
 - [01 — độ phủ nhãn](notes/01-task-overlap.md): chỉ 20 phân tử có đủ nhãn để khép vòng
   ràng buộc, nên ràng buộc phải áp **bán giám sát** trên dự đoán.
@@ -25,10 +26,13 @@ Xem `notes/` theo thứ tự, và bản thảo paper ở [paper/draft.md](paper/
   TDC tự chế ra "cải tiến" tới 0,067 Spearman mà không đổi gì về mô hình — lớn hơn mục
   tiêu cải tiến ban đầu của dự án.
 - [03 — trần nhiễu](notes/03-noise-ceiling.md): phương pháp ước lượng trần nhiễu.
-  **⚠ Con số trong trang này đã bị `notes/04` bác bỏ một phần.**
+  **⚠ Toàn bộ hướng này đã bị thu hồi.** Xem `notes/12`: các "nhóm lặp" dùng để
+  ước lượng hoá ra là cặp người/chuột, nên cả con số gốc 0,541 lẫn con số "đã
+  sửa" 0,764 đều không có cơ sở. Giữ lại hai trang này vì bản thảo mô tả chính
+  lần sai đó.
 - [04 — kiểm duyệt assay](notes/04-censoring.md): 27–34% nhãn clearance là cờ ngưỡng phát
-  hiện, không phải phép đo. Sửa lại trần nhiễu từ 0,541 lên **≥ 0,764** — tức endpoint
-  **chưa bão hoà**, vẫn còn dư địa thật.
+  hiện, không phải phép đo. Phần kiểm duyệt đứng vững; phần hiệu chỉnh trần nhiễu
+  trong trang này thì không, xem trên.
 - [05 — external set](notes/05-external-set.md): dựng được cho `ppbr` (n≈150–200) và
   `half_life` (n≈140–165); nhánh in vitro **không lấy được từ hồ sơ FDA**.
 - [06 — kiểm chứng quan hệ IVIVE](notes/06-ivive-relation-validated.md): nhánh microsome
@@ -78,3 +82,18 @@ Thay `.venv/Scripts/python` bằng `.venv/bin/python` trên macOS.
 .venv/Scripts/python -m src.data.fda_labels         # buoc 2-3: nhan + cau truc
 .venv/Scripts/python -m src.data.external_overlap   # loc + kiem trung lap voi TDC
 ```
+
+## Giấy phép
+
+Mã nguồn: MIT, xem [LICENSE](LICENSE).
+
+Dữ liệu trong `data/` giữ giấy phép riêng của nguồn. Văn bản nhãn thuốc FDA là
+tác phẩm của chính phủ Hoa Kỳ; bản gửi AstraZeneca trên ChEMBL (document
+`CHEMBL3301361`) là CC BY-SA 3.0. Bộ dữ liệu đã kiểm chứng và phần chú giải
+xuất xứ được lưu trữ riêng tại Zenodo dưới CC BY 4.0, concept DOI
+[10.5281/zenodo.23462435](https://doi.org/10.5281/zenodo.23462435).
+
+## Bản thảo
+
+Các bản thảo không nằm trong repo này (thư mục `paper/` bị `.gitignore` loại
+trừ). Dữ liệu và mã để tái lập mọi con số trong đó thì có.
