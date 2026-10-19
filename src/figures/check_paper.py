@@ -25,6 +25,17 @@ EXTERNAL = ROOT / "data" / "external"
 RESULTS = ROOT / "results"
 
 
+def quoted(spelling: str, text: str) -> bool:
+    """Is this figure quoted in the text as a complete number?
+
+    A plain substring test passes vacuously whenever the figure is a prefix of
+    an unrelated one: "8.70" is satisfied by "8.7096" sitting in a different
+    table. Requiring that no digit abut either end fixes that, and is the
+    difference between a guard and the appearance of one.
+    """
+    return re.search(rf"(?<![\d.]){re.escape(spelling)}(?!\d)", text) is not None
+
+
 def check_numbers(text: str) -> list[str]:
     """Key figures quoted in the text, against the files they derive from."""
     problems = []
@@ -43,7 +54,7 @@ def check_numbers(text: str) -> list[str]:
         "half-life verified set": (len(half), ["76"]),
     }
     for label, (value, spellings) in expected.items():
-        if not any(s in text for s in spellings):
+        if not any(quoted(s, text) for s in spellings):
             problems.append(f"{label}: computed {value}, no matching figure in text")
 
     # The protein-binding set loses one compound to a training-set collision at
@@ -62,7 +73,7 @@ def check_numbers(text: str) -> list[str]:
             ("mouse", "153"), ("guinea pig", "86"),
         ):
             rows = int(species.loc[name, "unambiguous_rows"])
-            if spelling not in text:
+            if not quoted(spelling, text):
                 problems.append(
                     f"{name} plasma contributes {rows} unambiguous rows; "
                     f"'{spelling}' not in text"
@@ -72,12 +83,12 @@ def check_numbers(text: str) -> list[str]:
             ("mouse", "5.6%"), ("guinea pig", "3.2%"),
         ):
             share = float(species.loc[name, "unambiguous_share"])
-            if spelling not in text:
+            if not quoted(spelling, text):
                 problems.append(
                     f"{name} share is {100 * share:.1f}%; '{spelling}' not in text"
                 )
         non_human = 1.0 - float(species.loc["human", "unambiguous_share"])
-        if f"{100 * non_human:.1f}%" not in text:
+        if not quoted(f"{100 * non_human:.1f}%", text):
             problems.append(
                 f"non-human share is {100 * non_human:.1f}%, not quoted in text"
             )
@@ -86,7 +97,7 @@ def check_numbers(text: str) -> list[str]:
             ("mouse", "162"), ("guinea pig", "91"),
         ):
             upstream = int(species.loc[name, "upstream_records"])
-            if spelling not in text:
+            if not quoted(spelling, text):
                 problems.append(
                     f"upstream {name} assay holds {upstream} records; "
                     f"'{spelling}' not in text"
@@ -101,7 +112,7 @@ def check_numbers(text: str) -> list[str]:
             ("molecules_with_conflicting_labels", "140"),
             ("max_within_molecule_spread", "49.3"),
         ):
-            if spelling not in text:
+            if not quoted(spelling, text):
                 problems.append(
                     f"{column} is {floor[column]}; '{spelling}' not in text"
                 )
@@ -111,7 +122,7 @@ def check_numbers(text: str) -> list[str]:
         ext = pd.read_csv(summary).set_index("endpoint")
         for endpoint, token in (("ppb", "0.689"), ("half_life", "0.334")):
             value = ext.loc[endpoint, "external_spearman"]
-            if token not in text:
+            if not quoted(token, text):
                 problems.append(
                     f"{endpoint} external Spearman is {value:.3f}; '{token}' not in text"
                 )
@@ -123,7 +134,7 @@ def check_numbers_paper_c(text: str) -> list[str]:
     problems = []
 
     def require(label: str, value: float, spelling: str) -> None:
-        if spelling not in text:
+        if not quoted(spelling, text):
             problems.append(f"{label}: computed {value}, '{spelling}' not in text")
 
     compression = RESULTS / "ppb_compression_summary.csv"
