@@ -128,6 +128,30 @@ def compression_full() -> None:
          summary[columns].round(3))
 
 
+def tuning() -> None:
+    per_seed = pd.read_csv(RESULTS_ROOT / "tuned_scale_per_seed.csv")
+    metrics = ["valid_mae", "test_mae", "test_spearman",
+               "test_fu_fold_median_high", "ext_fu_fold_median_high",
+               "ext_frac_within_2fold_high"]
+    rows = []
+    for metric in metrics:
+        row = {"Metric": metric}
+        for scale in SCALES:
+            for state in ("untuned", "tuned"):
+                block = per_seed[(per_seed["scale"] == scale)
+                                 & (per_seed["tuning"] == state)][metric]
+                row[f"{scale} {state}"] = f"{block.mean():.4f}"
+        rows.append(row)
+    emit("Table S8. Sixteen configurations per scale, selected on validation MAE, "
+         "5 seeds under the official protocol.", pd.DataFrame(rows))
+
+    chosen = per_seed[per_seed["tuning"] == "tuned"].pivot(
+        index="seed", columns="scale", values="config_index").reset_index()
+    chosen.columns = ["Seed"] + [str(c) for c in chosen.columns[1:]]
+    emit("Table S9. Which configuration the search selected. Index 0 is the "
+         "untuned configuration, which was always a candidate.", chosen)
+
+
 def species_and_floor() -> None:
     emit("Table S6. Species composition of PPBR_AZ by value match.",
          pd.read_csv(RESULTS_ROOT / "ppb_species_composition.csv"))
@@ -142,6 +166,7 @@ def main() -> None:
     families_full()
     leaderboard_full()
     negative_control()
+    tuning()
     species_and_floor()
 
 

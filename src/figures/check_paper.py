@@ -200,6 +200,26 @@ def check_numbers_paper_c(text: str) -> list[str]:
             value = frame.get_group((training, scale_name))["fu_fold_median_high"].mean()
             require(f"{training} / {scale_name}", round(float(value), 3), spelling)
 
+    tuned = RESULTS / "tuned_scale_per_seed.csv"
+    if tuned.exists():
+        frame = pd.read_csv(tuned)
+        for scale_name, state, column, spelling in (
+            ("percent", "tuned", "test_mae", "7.991"),
+            ("logit", "tuned", "test_mae", "7.410"),
+            ("log_fu", "tuned", "test_mae", "7.611"),
+            ("percent", "tuned", "ext_fu_fold_median_high", "8.70"),
+            ("percent", "untuned", "ext_fu_fold_median_high", "8.97"),
+            ("logit", "untuned", "ext_fu_fold_median_high", "2.59"),
+            ("log_fu", "untuned", "ext_fu_fold_median_high", "2.45"),
+            ("log_fu", "tuned", "ext_fu_fold_median_high", "2.65"),
+            ("log_fu", "tuned", "ext_frac_within_2fold_high", "0.330"),
+            ("log_fu", "untuned", "ext_frac_within_2fold_high", "0.384"),
+        ):
+            block = frame[(frame["scale"] == scale_name)
+                          & (frame["tuning"] == state)][column]
+            require(f"{scale_name} {state} {column}",
+                    round(float(block.mean()), 4), spelling)
+
     propagation = RESULTS / "fu_propagation_parametric.csv"
     if propagation.exists():
         frame = pd.read_csv(propagation)
