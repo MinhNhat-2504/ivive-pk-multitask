@@ -19,10 +19,13 @@ reference was added after rendering.
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-PAPER = ROOT / "paper" / "paper_A_benchmark_defects.md"
+#: The paper to renumber. There is more than one paper now, so the path is an
+#: argument; the original default is kept so existing invocations still work.
+DEFAULT_PAPER = ROOT / "paper" / "paper_A_benchmark_defects.md"
 
 DIGITS = "⁰¹²³⁴⁵⁶⁷⁸⁹"
 SUPERSCRIPT = {str(d): c for d, c in enumerate(DIGITS)}
@@ -57,7 +60,10 @@ def load_entries(block: str) -> dict[str, str]:
 
 
 def main() -> None:
-    text = PAPER.read_text(encoding="utf-8")
+    paper = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_PAPER
+    if not paper.is_absolute():
+        paper = ROOT / paper
+    text = paper.read_text(encoding="utf-8")
     head, _, block = text.partition(MARKER)
     entries = load_entries(block)
     keys = list(entries)
@@ -101,11 +107,11 @@ def main() -> None:
     )
     keyed = MARKER + "\n\n" + "\n\n".join(f"@{key}: {entries[key]}" for key in order)
 
-    PAPER.write_text(
+    paper.write_text(
         body.rstrip() + "\n\n" + rendered + "\n\n" + keyed + "\n", encoding="utf-8"
     )
 
-    print(f"{len(order)} references, numbered by first appearance:")
+    print(f"{paper.name}: {len(order)} references, numbered by first appearance:")
     for key in order:
         print(f"  {numbers[key]:2d}  {key}")
 
