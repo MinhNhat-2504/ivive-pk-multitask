@@ -1,6 +1,8 @@
 # Thông báo cho TDC trước khi nộp bài A
 
-Ngày soạn: 2026-10-19. **Chưa gửi.**
+Ngày soạn: 2026-10-19. **ĐÃ GỬI: issue #405, 2026-10-19**
+https://github.com/mims-harvard/TDC/issues/405
+Người gửi: MinhNhat-2504. Chưa có phản hồi tính tới lúc ghi.
 
 Lý do phải làm: bài A báo cáo một khiếm khuyết trong công cụ mà cộng đồng đang dùng.
 Công bố mà không báo trước cho người bảo trì là sai quy chuẩn, và họ có thể có lý do mình
