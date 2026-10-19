@@ -1,0 +1,31 @@
+Supporting data for two manuscripts: "Two undeclared data defects in the pharmacokinetic endpoints of the TDC ADMET benchmark", and "A plasma protein binding benchmark that cannot support the use its endpoint is for".
+
+What this contains
+
+Three things, kept together because the papers use them together.
+
+1. A temporal external set. Plasma protein binding (n = 129) and terminal half-life (n = 76) for small molecules first approved by the FDA from 2017 onward, after every TDC pharmacokinetic source dataset was compiled. Values were extracted from FDA product labels, then read individually against their own source sentence by hand; half-life was read twice. Compounds appearing in TDC, or in PKSmart's released external sets, were removed. Every accept, correct, reject and withhold judgement from the hand review is included with its reason, so the curation can be audited rather than taken on trust.
+
+2. Assay provenance. The four AstraZeneca assays as deposited in ChEMBL (document CHEMBL3301361), retaining two fields that the benchmark's conversion drops: the species of each assay, and the "<" or ">" qualifier marking a value at a detection limit. These are the files behind the first paper's two principal findings, that Clearance_Hepatocyte_AZ merges a human and a rat assay, and that a quarter to a third of the clearance labels sit exactly on the assays' declared detection limits.
+
+3. New in this version. The species composition of the plasma protein binding endpoint. The same deposition contains five binding assays, one per species: human, rat, dog, mouse and guinea pig, holding 2828 records over 1797 distinct molecules. TDC's PPBR_AZ holds 2790 rows over exactly those 1797 molecules. Matching each benchmark row against all five assays by canonical SMILES and value, 97.5 percent match exactly one assay, and of those 57.6 percent are human, 25.0 percent rat, 8.6 percent dog, 5.6 percent mouse and 3.2 percent guinea pig. So 42.4 percent of the endpoint is not human plasma. The duplication this creates also puts a floor under the benchmark's metric: the test partition is 559 rows over 343 molecules, 140 of which carry labels that disagree by up to 49.3 percentage points, so 1.964 percentage points of mean absolute error cannot be removed by any model.
+
+Cautions on use
+
+Roughly a fifth of the binding values in the external set are censored, reported as "> 99%" or similar rather than measured. The censoring column says which. Treating those as point measurements is the error the first paper is about.
+
+Half-life values marked is_apparent come from oral studies and are not comparable with intravenous terminal half-life. They are supplied but excluded from the verified set.
+
+PPBR_AZ rows are per measurement, not per molecule. A molecule measured in several species appears several times. No molecule appears in both the train and test partitions, so this is not a leakage finding.
+
+Files
+
+Each file ships with a column description in README.md. The three added in this version are ppb_all_species_upstream.csv (all five assays as fetched), ppb_species_composition.csv (the row-level attribution) and ppb_metric_floor.csv (the floor computation).
+
+Licence
+
+CC BY 4.0. The underlying FDA label text is a US government work; the ChEMBL deposition is CC BY-SA 3.0. This deposit covers the curation, verification and provenance annotation.
+
+Code
+
+https://github.com/MinhNhat-2504/ivive-pk-multitask

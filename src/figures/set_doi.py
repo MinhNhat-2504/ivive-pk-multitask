@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 PAPER = ROOT / "paper" / "paper_A_benchmark_defects.md"
 SI = ROOT / "paper" / "paper_A_supporting_information.md"
 
-DOI = "10.5281/zenodo.23462436"
+DOI = "10.5281/zenodo.23462435"
 
 PAPER_TEXT = (
     "The verified external set, the hand-review files recording every accept, "
