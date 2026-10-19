@@ -301,8 +301,12 @@ def main() -> None:
         "citations": check_citations(text),
     }
     if not is_paper_a:
+        # Paper C's supporting information carries the full tables, so a figure
+        # may be quoted there and nowhere else; the checks run over both.
+        si_c = ROOT / "paper" / "paper_C_supporting_information.md"
+        combined = text + (si_c.read_text(encoding="utf-8") if si_c.exists() else "")
         sections = {
-            "numbers against source files": check_numbers_paper_c(text),
+            "numbers against source files": check_numbers_paper_c(combined),
             **sections,
         }
     if is_paper_a:

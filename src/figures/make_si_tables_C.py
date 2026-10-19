@@ -121,7 +121,8 @@ def compression_full() -> None:
     summary = summary.set_index("model").reindex(FAMILIES).reset_index()
     summary["model"] = [SHORT[f] for f in FAMILIES]
     columns = ["model", "spearman", "pred_range", "bias_below_50", "bias_above_99",
-               "fu_overprediction_median", "fu_fold_error_median", "n_overpredicted"]
+               "fu_overprediction_median", "fu_fold_error_median", "n_overpredicted",
+               "n_at_assay_ceiling"]
     emit("Table S5. Compression on the external set under a percent-bound target, "
          "seed 1, untransformed targets.",
          summary[columns].round(3))
