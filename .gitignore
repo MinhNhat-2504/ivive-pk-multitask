@@ -9,3 +9,6 @@ data/external/drugsfda.json
 
 # Ban thao paper: giu rieng, khong dua len GitHub
 paper/
+
+# Goi nop Zenodo, dung lai tu script
+zenodo_bundle/
