@@ -93,7 +93,14 @@ def main() -> None:
         right.plot(lims, [v * factor for v in lims], color=GRID,
                    linewidth=0.9, linestyle=style, zorder=2)
 
-    median_ratio = float(np.median(fu_pred / fu_true))
+    ratio = fu_pred / fu_true
+    # The signed median is the systematic over-estimate; the fold error is how
+    # wrong the number is either way. See src/figures/fix_fold_statistic.py.
+    median_ratio = float(np.median(ratio))
+    median_fold = float(np.median(np.maximum(ratio, 1.0 / ratio)))
+    n_over = int((ratio > 1).sum())
+    print(f"  fu over-estimated in {n_over}/{len(ratio)}, median {median_ratio:.2f}x, "
+          f"median fold error {median_fold:.2f}x")
     right.annotate(
         f"median {median_ratio:.1f}× too high\n(n = {int(high.sum())}, bound > 99%)",
         # Low and right, where the identity line leaves the panel empty. The
